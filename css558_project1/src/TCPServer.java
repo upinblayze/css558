@@ -24,6 +24,7 @@ public class TCPServer {
         kvalues = new HashMap<String, String>();
         logger = new Logger("TCP-server-log.txt");
         logger.log("Server start running on : " + Inet4Address.getLocalHost());
+        System.out.println("Server start running on : " + Inet4Address.getLocalHost());
     }
 
     private String serveRequest(String request){
@@ -62,8 +63,22 @@ public class TCPServer {
     }
 
     public void listenAndServeRequests() throws IOException {
+        while(true){
+            final Socket connectionSocket = serverSocket.accept();
+            new Thread(){
+                public void run(){
+                    try {
+                        handleRequests(connectionSocket);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }.start();
+        }
+    }
+
+    private void handleRequests(Socket connectionSocket) throws IOException {
         String request ;
-        Socket connectionSocket = serverSocket.accept();
         BufferedReader inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
         DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
         while(true){
@@ -112,7 +127,9 @@ public class TCPServer {
         try{
             int port = Integer.parseInt(args[0]);
             server = new TCPServer(port);
-            server.listenAndServeRequests();
+            while(true){
+                server.listenAndServeRequests();
+            }
         }catch (Exception ex){
             ex.printStackTrace();
             server.closeLogger();
