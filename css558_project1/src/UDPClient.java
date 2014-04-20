@@ -105,18 +105,24 @@ public class UDPClient{
 
         String server = args[0];
         int port = Integer.parseInt(args[1]);
-        UDPClient client = new UDPClient(server, port);
-        client.put("red" , "R");
-        client.put("green" , "G");
-        client.put("blue" , "B");
-        client.put("black" , "BLC");
-        client.put("yellow" , "Y");
-
-        client.get("red");
-        client.delete("red");
-        client.get("red");
-        client.closeSocket();
-        client.closeLogger();
+        UDPClient c = new UDPClient(server, port);
+		c.put("key1", "value1");
+		c.put("key2", "value2");
+		c.put("key3", "value3");
+		c.put("key4", "value4");
+		c.put("key5", "value5");
+		c.get("key1");
+		c.get("key2");
+		c.get("key3");
+		c.get("key4");
+		c.get("key5");
+		c.delete("key1");
+		c.delete("key2");
+		c.delete("key3");
+		c.delete("key4");
+		c.delete("key5");
+        c.closeSocket();
+        c.closeLogger();
     }
 }
 

@@ -70,24 +70,40 @@ public class TCPClient {
     public static void main(String args[]) throws Exception
     {
         if(args.length < 2){
-            System.out.println("Error: no enough parameters");
+            System.out.println("Error: not enough parameters");
             System.exit(2);
         }
 
         String server = args[0];
         int port = Integer.parseInt(args[1]);
-        TCPClient client = new TCPClient(server, port);
-        client.put("red" , "R");
-        client.put("green" , "G");
-        client.put("blue" , "B");
-        client.put("black" , "BLC");
-        client.put("yellow" , "Y");
-
-        client.get("red");
-        client.delete("red");
-        client.get("red");
-        client.closeSocket();
-        client.closeLogger();
+        TCPClient c = new TCPClient(server, port);
+//        client.put("red" , "R");
+//        client.put("green" , "G");
+//        client.put("blue" , "B");
+//        client.put("black" , "BLC");
+//        client.put("yellow" , "Y");
+//
+//        client.get("red");
+//        client.delete("red");
+//        client.get("red");
+		c.put("key1", "value1");
+		c.put("key2", "value2");
+		c.put("key3", "value3");
+		c.put("key4", "value4");
+		c.put("key5", "value5");
+		c.get("key1");
+		c.get("key2");
+		c.get("key3");
+		c.get("key4");
+		c.get("key5");
+		c.delete("key1");
+		c.delete("key2");
+		c.delete("key3");
+		c.delete("key4");
+		c.delete("key5");
+		c.get("key5");
+        c.closeSocket();
+        c.closeLogger();
     }
 }
 
