@@ -14,10 +14,6 @@ public class RMIClient  implements Runnable {
 		Registry registry = LocateRegistry.getRegistry(the_host);
 	    kvs = (KVService) registry.lookup(name);
 	}
-	public static void main(String[] args) throws RemoteException, NotBoundException {	
-		(new Thread(new RMIClient(args[0]))).start();
-		(new Thread(new RMIClient(args[0]))).start();
-	}
 
 	@Override
 	public void run() {
