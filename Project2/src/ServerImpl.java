@@ -36,6 +36,11 @@ class ServerImpl extends UnicastRemoteObject implements Server {
 		return value;
 	}
 	public synchronized boolean delete(String key){
+		if(!kvalues.containsKey(key)){
+			logger.log("Key = " + key + " not found");
+			return false;
+		}
+		else{
 		kvalues.remove(key);
 		logger.log("Server call: delete(" + key + ")", true);
 		if(!kvalues.containsKey(key)){
@@ -46,15 +51,19 @@ class ServerImpl extends UnicastRemoteObject implements Server {
 		else{
 			return false;
 		}
+		}
 	}
 
 	public static void main(String[] args) {
 		try {
-			if(args.length == 0){
-				System.out.println("Error: no enough parameters");
-				System.exit(2);
+			int port;
+			if(args.length == 1){
+				port = Integer.parseInt(args[0]);
 			}
-			int port = Integer.parseInt(args[0]);
+			else{
+				port = 2212;
+			}
+			String serverName = "RMISERVER";
 
 			//create a local instance of the object
 			ServerImpl server = new ServerImpl();
@@ -62,7 +71,7 @@ class ServerImpl extends UnicastRemoteObject implements Server {
 			java.rmi.registry.LocateRegistry.createRegistry(port);
 
 			//put the local instance in the registry
-			String url = "//:" + port + "/RMISERVER";
+			String url = "//:" + port + "/" + serverName;
 			Naming.rebind(url, server);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -70,3 +79,4 @@ class ServerImpl extends UnicastRemoteObject implements Server {
 	}
 
 }
+
