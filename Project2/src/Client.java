@@ -86,12 +86,16 @@ public class Client
 		}
 	}
 	public static void main(String []args){
-		if(args.length < 2){
-			System.out.println("Error: no enough parameters");
-			System.exit(2);
+		String serverName ;
+		int serverPort ;
+		if(args.length == 2){
+			serverName = args[0];
+			serverPort = Integer.parseInt(args[1]);
 		}
-		String serverName = args[0];
-		int serverPort = Integer.parseInt(args[1]);
+		else{
+			serverName = "RMISERVER";
+			serverPort = 2212;	
+		}
 		final String url = "rmi://localhost:" + serverPort + "/" + serverName;
 		try {
 			
@@ -161,3 +165,4 @@ public class Client
 		}
 	}
 }
+
