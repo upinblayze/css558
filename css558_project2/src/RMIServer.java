@@ -7,21 +7,7 @@ import java.util.HashMap;
 
 public class RMIServer implements KVService {
 	HashMap<String,String> KVStore;
-	public static void main(String[] args) {
-		if(System.getSecurityManager()==null){
-			System.setSecurityManager(new SecurityManager());
-		}
-		try{
-			KVService server=new RMIServer();
-			KVService stub= (KVService)UnicastRemoteObject.exportObject(server,0);
-			Registry reg=LocateRegistry.getRegistry();
-			reg.rebind("RPCServer", stub);
-			System.out.println("Server ready");
-		}catch(Exception e){
-			System.out.println("RMIServer error: "+e.getMessage());
-			System.exit(0);
-		}
-	}
+
 
 	RMIServer() throws RemoteException{
 		KVStore=new HashMap<String,String>();
@@ -43,6 +29,25 @@ public class RMIServer implements KVService {
 	public void delete(String the_key) throws RemoteException{
 		// TODO Auto-generated method stub
 		KVStore.remove(the_key);
+	}
+	
+	
+	
+	public static void main(String[] args) {
+		if(System.getSecurityManager()==null){
+			System.setSecurityManager(new SecurityManager());
+		}
+		try{
+			String name = "KVService";
+			KVService server = new RMIServer();
+			KVService stub = (KVService)UnicastRemoteObject.exportObject(server,0);
+			Registry reg = LocateRegistry.getRegistry();
+			reg.rebind(name, stub);
+			System.out.println("Server ready");
+		}catch(Exception e){
+			System.out.println("RMIServer error: "+e.getMessage());
+			System.exit(0);
+		}
 	}
 
 }
