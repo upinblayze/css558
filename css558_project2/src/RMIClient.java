@@ -7,8 +7,7 @@ import java.rmi.registry.Registry;
 public class RMIClient {
 
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		System.setSecurityManager(new RMISecurityManager());
+
 		try{
 			String name = "KVService";
 			Registry registry = LocateRegistry.getRegistry(args[0]);

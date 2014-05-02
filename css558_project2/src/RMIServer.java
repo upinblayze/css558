@@ -8,9 +8,7 @@ import java.util.HashMap;
 public class RMIServer {
 
 	public static void main(String[] args) {
-		if(System.getSecurityManager()==null){
-			System.setSecurityManager(new SecurityManager());
-		}
+
 		try{
 			String name = "KVService";
 			KVStore kvs = new KVStore();
