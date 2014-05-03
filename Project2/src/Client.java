@@ -86,16 +86,19 @@ public class Client
 		}
 	}
 	public static void main(String []args){
-		String serverName ;
+		String serverName , serverIPAddress ;
 		int serverPort ;
 		if(args.length == 2){
-			serverName = args[0];
-			serverPort = Integer.parseInt(args[1]);
+			serverIPAddress = args[0];
+      serverPort = Integer.parseInt(args[1]);
 		}
 		else{
-			serverName = "RMISERVER";
-			serverPort = 2212;	
+      System.out.println("No sufficient parameters");
+      System.exit(2);
+			//serverPort = 2212;	
 		}
+    
+    serverName = "RMISERVER";
 		final String url = "rmi://localhost:" + serverPort + "/" + serverName;
 		try {
 			
