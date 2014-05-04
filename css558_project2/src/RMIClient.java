@@ -1,3 +1,4 @@
+
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RMISecurityManager;
@@ -5,15 +6,23 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+
 
 public class RMIClient  implements Runnable {
 	private KVService kvs;
-	private int my_id;
 	
 	public RMIClient(String the_host) throws RemoteException, NotBoundException {
 		String name = "KVService";
-		Registry registry = LocateRegistry.getRegistry(the_host);
-	    kvs = (KVService) registry.lookup(name);
+//		Registry registry = LocateRegistry.getRegistry(the_host);
+//		kvs=(KVService) registry.lookup(name);
+		try{
+			kvs = (KVService) Naming.lookup("//"+the_host+"/"+name);
+		}catch(Exception e){
+			System.out.println(e.getMessage());
+		}
 	}
 
 	@Override
@@ -65,9 +74,12 @@ public class RMIClient  implements Runnable {
 				System.out.println("get key1; value = " + kvs.get("key1"));
 				Thread.sleep(1000);
 			}catch(Exception e){
-				
+
 			}
 		}
 	}
 
 }
+
+
+
