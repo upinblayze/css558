@@ -10,13 +10,13 @@ To run the code on the nodes:
 1.  Copy the following files to n01:
 		-RMIServer.java
 		-KVService.java
+		-KVStore.java
 		-Logger.java
 		
 2.	Copy the following files to n02:
 		-RMIClient.java
 		-ClientMain.java
 		-KVService.java
-		-KVStore.java
 		
 3.  Run the following commands on n01 with the server files:
 		javac RMIServer.java
