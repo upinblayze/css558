@@ -6,7 +6,6 @@
  *CSS558 Sp14 Project2
 */
 
-import java.net.Inet4Address;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
