@@ -1,13 +1,32 @@
+/*
+ *Stephen Mosby
+ *Kellen Han-Nin Cheng
+ *Aqeel S Bin Rustum
+ *Nai-Wei Chen
+ *CSS558 Sp14 Project2
+*/
+
 import java.io.IOException;
+import java.lang.annotation.Inherited;
 import java.net.Inet4Address;
 import java.rmi.RemoteException;
 import java.util.HashMap;
 
-
+/**
+ * This is a simple class that implements a key-value store.  Instances of this
+ * class reside on the server.
+ */
 public class KVStore implements KVService {
+	/** The logger used to create and append to the server's log file. */
 	private Logger logger;
+	
+	/**The hash map used to store and retrieve the key-value parings.*/
 	private HashMap<String,String> KVStore;
 
+	/**
+	 * A simple constructor
+	 * @throws IOException
+	 */
 	public KVStore() throws IOException{
 		KVStore=new HashMap<String,String>();
 		logger = new Logger("server.log");
@@ -15,6 +34,9 @@ public class KVStore implements KVService {
 				+ Inet4Address.getLocalHost() , true);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	synchronized public String get(String the_key) throws RemoteException{
 		logger.log("Server call: get (" + the_key + ")", true);
@@ -25,6 +47,9 @@ public class KVStore implements KVService {
 		return value;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	synchronized public void put(String the_key, String the_value) 
 			throws RemoteException{
@@ -35,6 +60,9 @@ public class KVStore implements KVService {
 				+ the_value + ">" );
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	synchronized public void delete(String the_key) throws RemoteException{
 		if(!KVStore.containsKey(the_key)){
