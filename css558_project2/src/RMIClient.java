@@ -18,10 +18,19 @@ import java.rmi.RemoteException;
  * located on the server.
  */
 public class RMIClient  implements Runnable {
+	/**Specifies the amount of time to sleep a thread in milliseconds */
 	private int SLEEP_TIME = 1000;
+	
+	/**The interface for the remote object */
 	private KVService kvs;
+	
+	/**The client thread id */
 	private int my_id;
+	
+	/**The name of the KV server */
 	private String my_host;
+	
+	/**The the logger used by this client thread */
 	private Logger logger;
 
 	/**
