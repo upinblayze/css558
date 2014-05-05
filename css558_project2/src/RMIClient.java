@@ -29,6 +29,8 @@ public class RMIClient  implements Runnable {
 		String timestamp = Logger.getTimestamp();
 		logger = new Logger("Client-" + the_id +"-" + timestamp + ".log");
 		logger.log("Client " + the_id + " is running on : " + Inet4Address.getLocalHost(), true);
+		System.out.println("Client " + the_id 
+				+ " is running on : " + Inet4Address.getLocalHost());
 	}
 	
 	private void put(final String the_key, final String the_value) 
