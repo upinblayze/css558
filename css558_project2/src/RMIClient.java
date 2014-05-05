@@ -1,5 +1,6 @@
 
-import java.net.UnknownHostException;
+import java.io.IOException;
+import java.net.Inet4Address;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -7,12 +8,14 @@ import java.rmi.RemoteException;
 
 
 public class RMIClient  implements Runnable {
+	private int SLEEP_TIME = 1000;
 	private KVService kvs;
 	private int my_id;
 	private String my_host;
+	private Logger logger;
 
 	public RMIClient(String the_host, int the_id) 
-			throws RemoteException, NotBoundException, UnknownHostException {
+			throws NotBoundException, IOException {
 		String name = "KVService";
 		my_id = the_id;
 		my_host = java.net.InetAddress.getLocalHost().getHostName();
@@ -23,72 +26,70 @@ public class RMIClient  implements Runnable {
 		}catch(Exception e){
 			System.out.println(e.getMessage());
 		}
+		String timestamp = Logger.getTimestamp();
+		logger = new Logger("Client-" + the_id +"-" + timestamp + ".log");
+		logger.log("Client " + the_id + " is running on : " + Inet4Address.getLocalHost(), true);
+	}
+	
+	private void put(final String the_key, final String the_value) 
+			throws RemoteException, InterruptedException {
+		kvs.put(the_key,the_value);
+		System.out.println(my_host + ": Thread " 
+				+ my_id + ": put " + the_key + " " + the_value);
+		logger.log("Client " + my_id 
+				+ " has issued request: put("+the_key+","+the_value+")" , true);
+		Thread.sleep(SLEEP_TIME);
 	}
 
-	@Override
+	private void get(final String the_key) 
+			throws RemoteException, InterruptedException {
+		String v;
+		logger.log("Client " + my_id 
+				+ " has issued request: get("+the_key+")" , true);
+		v = kvs.get(the_key);
+		System.out.println(my_host + ": Thread " + my_id
+				+ ": get " + the_key + "; value = " + v);
+		logger.log("Client " + my_id + " has got--> key = "
+				+ the_key+ " , value = " + v, true);
+		Thread.sleep(SLEEP_TIME);
+	}
+	
+	private void delete(final String the_key)
+			throws InterruptedException, RemoteException {
+		kvs.delete(the_key);
+		System.out.println(my_host + ": Thread " + my_id
+				+ ": " + the_key + " deleted");
+		logger.log("Client " + my_id 
+				+ " has issued request: delete("+the_key+")" , true);
+		Thread.sleep(1000);
+	}
+	
+	
+	@Override 
 	public void run() {
 		// TODO Auto-generated method stub
 		while(true) {
 			try{
-				kvs.put("key1", "value1");
-				System.out.println(my_host + ": Thread " 
-				+ my_id + ": put key1 value1");
-				Thread.sleep(1000);
-				kvs.put("key2", "value2");
-				System.out.println(my_host + ": Thread " 
-				+ my_id + ": put key2 value2");
-				Thread.sleep(1000);
-				kvs.put("key3", "value3");
-				System.out.println(my_host + ": Thread " 
-				+ my_id + ": put key3 value3");
-				Thread.sleep(1000);
-				kvs.put("key4", "value4");
-				System.out.println(my_host + ": Thread " + my_id 
-						+ ": put key4 value4");
-				Thread.sleep(1000);
-				kvs.put("key5", "value5");
-				System.out.println(my_host + ": Thread " + my_id
-						+ ": put key5 value5");
-				Thread.sleep(1000);
-				System.out.println(my_host + ": Thread " + my_id
-						+ ": get key1; value = " + kvs.get("key1"));
-				Thread.sleep(1000);
-				System.out.println(my_host + ": Thread " + my_id 
-						+ ": get key2; value = " + kvs.get("key2"));
-				Thread.sleep(1000);
-				System.out.println(my_host + ": Thread " + my_id 
-						+ ": get key3; value = " + kvs.get("key3"));
-				Thread.sleep(1000);
-				System.out.println(my_host + ": Thread " + my_id
-						+ ": get key4; value = " + kvs.get("key4"));
-				Thread.sleep(1000);
-				System.out.println(my_host + ": Thread " + my_id 
-						+ ": get key5; value = " + kvs.get("key5"));
-				Thread.sleep(1000);
-				kvs.delete("key1");
-				System.out.println(my_host + ": Thread " + my_id
-						+ ": key1 deleted");
-				Thread.sleep(1000);
-				kvs.delete("key2");
-				System.out.println(my_host + ": Thread " + my_id 
-						+ ": key2 deleted");
-				Thread.sleep(1000);
-				kvs.delete("key3");
-				System.out.println(my_host + ": Thread " + my_id 
-						+ ": key3 deleted");
-				Thread.sleep(1000);
-				kvs.delete("key4");
-				System.out.println(my_host + ": Thread " + my_id 
-						+ ": key4 deleted");
-				Thread.sleep(1000);
-				kvs.delete(": key5");
-				System.out.println(my_host + ": Thread " + my_id
-						+ ": key5 deleted");
-				Thread.sleep(1000);
-				kvs.get("key1");
-				System.out.println(my_host + ": Thread " + my_id 
-						+ ": get key1; value = " + kvs.get("key1"));
-				Thread.sleep(1000);
+				put("key1", "value1");
+				put("key2", "value2");
+				put("key3", "value3");
+				put("key4", "value4");
+				put("key5", "value5");
+				
+				get("key1");
+				get("key2");
+				get("key3");
+				get("key4");
+				get("key5");
+				
+				delete("key1");
+				delete("key2");
+				delete("key3");
+				delete("key4");
+				delete("key5");
+				
+				get("key1");
+
 			}catch(Exception e){
 
 			}

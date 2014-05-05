@@ -1,14 +1,12 @@
-import java.net.UnknownHostException;
+import java.io.IOException;
 import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
-
 
 public class ClientMain {
 
 	private static int NUM_CLIENTS = 2;
 
 	public static void main(String[] args) 
-			throws RemoteException, NotBoundException, UnknownHostException {
+			throws NotBoundException, IOException {
 		if(args.length<1){
 			System.out.println("Usage: java ClientMain <host>");
 			System.exit(0);
