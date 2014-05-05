@@ -87,7 +87,7 @@ public class Client
 	}
 	public static void main(String []args){
 		String serverName , serverIPAddress ;
-		int serverPort ;
+		int serverPort = 0 ;
 		if(args.length == 2){
 			serverIPAddress = args[0];
       serverPort = Integer.parseInt(args[1]);
