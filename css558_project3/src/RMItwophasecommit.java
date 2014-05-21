@@ -7,7 +7,7 @@ import java.rmi.Remote;
  * to the replicated servers on the remote objects processing these calls 
  * located on the other replicated servers.
  */
-public interface RMItwophasecommit extends Remote{
+public interface RMItwophasecommit extends Remote {
 	
 	/**
 	 * This is a put request to be replicated on the replicated

@@ -6,11 +6,10 @@
  *CSS558 Sp14 Project2
 */
 
+import java.net.Inet4Address;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A simple class that implements a KVService, allowing for client machines to 
@@ -19,25 +18,19 @@ import java.util.List;
  */
 public class RMIServer {
 
-	private List<String> my_replicated_servers;
-	
-	public RMIServer() {
-		my_replicated_servers = new ArrayList<String>();
-	}
-	
+
 	public static void main(String[] args) {
 		
-		if(args.length < 1) {
-			System.out.println("Usage: RMIServer <unique_server_name>");
-			System.exit(0);
-		}
-
 		try{
 			String name = "KVService";
+			String local_name = Inet4Address.getLocalHost().toString();
 			KVStore kvs = new KVStore();
 			KVService stub = (KVService)UnicastRemoteObject.exportObject(kvs,0);
+			RMItwophasecommit stub2 = 
+					(RMItwophasecommit)UnicastRemoteObject.exportObject(kvs,0);
 			Registry reg = LocateRegistry.createRegistry(1099);
 			reg.rebind(name, stub);
+			reg.rebind(local_name, stub2);
 			System.out.println("Server ready");
 		}catch(Exception e){
 			System.out.println("RMIServer error: "+e.getMessage());
