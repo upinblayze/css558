@@ -38,5 +38,4 @@ public class ClientMain {
 			(new Thread(new RMIClient(args[0],client_id))).start();
 		}
 	}
-
 }

@@ -30,12 +30,12 @@ public interface KVService  extends Remote {
 	 * @param the_value - the value stored in a KVStore
 	 * @throws RemoteException
 	 */
-	String put(String the_key, String the_value) throws RemoteException;
+	void put(String the_key, String the_value) throws RemoteException;
 	
 	/**
 	 * This method deletes the value mapped to by the given key.
 	 * @param the_key - the key used in a KVStore
 	 * @throws RemoteException
 	 */
-	String delete(String the_key) throws RemoteException;
+	void delete(String the_key) throws RemoteException;
 }
