@@ -36,16 +36,21 @@ public class RMIServer {
 			List<RMItwophasecommit> my_replicated_servers = new ArrayList<RMItwophasecommit>();
 
 			int i = 0;
-			ArrayList<String> missigServers = new ArrayList<String>(Arrays.asList(args));
+			ArrayList<String> missingServers = new ArrayList<String>(Arrays.asList(args));
 			RMItwophasecommit tpc;
-			while(!missigServers.isEmpty()){
-				tpc = (RMItwophasecommit) Naming.lookup("//"+ missigServers.get(i) +"/"+name2);
-				if(tpc != null){
-					my_replicated_servers.add(tpc);
-					missigServers.remove(i);
+			while(!missingServers.isEmpty()){
+				try {
+					tpc = (RMItwophasecommit) Naming.lookup("//"+ missingServers.get(i) +"/"+name2);
+					if(tpc != null){
+						my_replicated_servers.add(tpc);
+						System.out.println("Succeeded to connect to " + missingServers.get(i));
+						missingServers.remove(i);	
+					}
+				} catch (Exception e) {
+					System.out.println("failed to connect to: " + missingServers.get(i));
 				}
 				i++;
-				i = i % 5;
+				i = i % args.length;
 			}
 
 			kvs.setMy_replicated_servers(my_replicated_servers);

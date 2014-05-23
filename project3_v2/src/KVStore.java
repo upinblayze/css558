@@ -183,9 +183,10 @@ public class KVStore implements KVService , RMItwophasecommit {
 
 	public boolean tpc(final String...args){
 		// TODO Auto-generated method stub
+
 		try{
 			boolean succeeded = false;
-			boolean [] acks = new boolean[5];
+			boolean [] acks = new boolean[4];
 			final String the_request_id = generateId();
 			secheduleTask(RequestType.ACK, the_request_id, -1 , acks , args);
 
@@ -196,6 +197,8 @@ public class KVStore implements KVService , RMItwophasecommit {
 				for(int j = 0 ; j < 5 ; j++){
 					if(acks[j] = false){
 						missingACK = true;
+						System.out.println("missing ack from: " 
+								+ my_replicated_servers.get(j));
 						secheduleTask(RequestType.ACK,the_request_id, j , acks , args);
 					}
 				}
@@ -204,7 +207,7 @@ public class KVStore implements KVService , RMItwophasecommit {
 
 			if(!missingACK){
 				//do the second phase
-				acks = new boolean[5];
+				acks = new boolean[4];
 				secheduleTask(RequestType.GO,the_request_id, -1 , acks , args);
 
 				trials = 0;
@@ -215,6 +218,8 @@ public class KVStore implements KVService , RMItwophasecommit {
 					for(int j = 0 ; j < 5 ; j++){
 						if(acks[j] = false){
 							missingACK = true;
+							System.out.println("missing ack from: " 
+									+ my_replicated_servers.get(j));
 							secheduleTask(RequestType.GO,the_request_id, j , acks , args);
 						}
 					}
