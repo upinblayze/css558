@@ -37,7 +37,7 @@ public class KVStore implements KVService , RMItwophasecommit {
 	public enum RequestType {ACK, GO}
 	/**
 	 * A simple constructor
-	 * @throws IOException
+	 * @throws IOExceptions
 	 */
 	public KVStore() throws IOException{
 		KVStore=new HashMap<String,String>();
@@ -183,7 +183,6 @@ public class KVStore implements KVService , RMItwophasecommit {
 
 	public boolean tpc(final String...args){
 		// TODO Auto-generated method stub
-
 		try{
 			boolean succeeded = false;
 			boolean [] acks = new boolean[4];
@@ -197,8 +196,6 @@ public class KVStore implements KVService , RMItwophasecommit {
 				for(int j = 0 ; j < 5 ; j++){
 					if(acks[j] = false){
 						missingACK = true;
-						System.out.println("missing ack from: " 
-								+ my_replicated_servers.get(j));
 						secheduleTask(RequestType.ACK,the_request_id, j , acks , args);
 					}
 				}
@@ -218,8 +215,6 @@ public class KVStore implements KVService , RMItwophasecommit {
 					for(int j = 0 ; j < 5 ; j++){
 						if(acks[j] = false){
 							missingACK = true;
-							System.out.println("missing ack from: " 
-									+ my_replicated_servers.get(j));
 							secheduleTask(RequestType.GO,the_request_id, j , acks , args);
 						}
 					}
@@ -263,7 +258,7 @@ public class KVStore implements KVService , RMItwophasecommit {
 				new Thread(f).start();
 				// get the result
 				try{
-					acks[i] = (boolean) f.get(1, TimeUnit.SECONDS);
+					acks[i] = ((Boolean) f.get(1, TimeUnit.SECONDS)).booleanValue();
 				}catch (Exception e) {
 					logger.log("Timeout", true);
 					f.cancel(true);
@@ -289,7 +284,7 @@ public class KVStore implements KVService , RMItwophasecommit {
 			new Thread(f).start();
 			// get the result
 			try{
-				acks[index] = (boolean) f.get(1, TimeUnit.SECONDS);
+				acks[index] = ((Boolean) f.get(1, TimeUnit.SECONDS)).booleanValue();
 			}catch (Exception e) {
 				logger.log("Timeout", true);
 				f.cancel(true);
@@ -315,7 +310,7 @@ public class KVStore implements KVService , RMItwophasecommit {
 				new Thread(f).start();
 				// get the result
 				try{
-					acks[i] = (boolean) f.get(1, TimeUnit.SECONDS);
+					acks[i] = ((Boolean) f.get(1, TimeUnit.SECONDS)).booleanValue();
 				}catch (Exception e) {
 					logger.log("Timeout", true);
 					f.cancel(true);
@@ -341,7 +336,7 @@ public class KVStore implements KVService , RMItwophasecommit {
 			new Thread(f).start();
 			// get the result
 			try{
-				acks[index] = (boolean) f.get(1, TimeUnit.SECONDS);
+				acks[index] = ((Boolean) f.get(1, TimeUnit.SECONDS)).booleanValue();
 			}catch (Exception e) {
 				logger.log("Timeout", true);
 				f.cancel(true);
