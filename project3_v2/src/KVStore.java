@@ -207,7 +207,6 @@ public class KVStore implements KVService , RMItwophasecommit {
 	synchronized public boolean tpc(final String...args){
 		// TODO Auto-generated method stub
 		try{
-			boolean succeeded = false;
 			boolean [] acks = {false,false,false,false};
 			final String the_request_id = generateId();
 			scheduleTask(RequestType.ACK, the_request_id, -1 , acks , args);
@@ -284,7 +283,7 @@ public class KVStore implements KVService , RMItwophasecommit {
 				// get the result
 				try{
 					acks[i] = ((Boolean) f.get(1, TimeUnit.SECONDS)).booleanValue();
-					System.out.println("Ackknowledge: "+acks[i]);
+					System.out.println("Acknowledge: "+acks[i]);
 				}catch (Exception e) {
 					logger.log("Timeout", true);
 					logger.log(acks[i]+" "+i,true);
@@ -312,7 +311,7 @@ public class KVStore implements KVService , RMItwophasecommit {
 			// get the result
 			try{
 				acks[index] = ((Boolean) f.get(1, TimeUnit.SECONDS)).booleanValue();
-				System.out.println("late Ackknowledge: "+acks[index]);
+				System.out.println("late Acknowledge: "+acks[index]);
 			}catch (Exception e) {
 				logger.log("Timeout", true);
 				logger.log(acks[index]+" "+index,true);
@@ -341,7 +340,7 @@ public class KVStore implements KVService , RMItwophasecommit {
 				try{
 					acks[i] = ((Boolean) f.get(1, TimeUnit.SECONDS)).booleanValue();
 
-					System.out.println("Go Ackknowledge: "+acks[i]);
+					System.out.println("Go Acknowledge: "+acks[i]);
 				}catch (Exception e) {
 					logger.log("Timeout", true);
 					logger.log(acks[i]+" "+i,true);
