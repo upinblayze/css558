@@ -3,7 +3,7 @@
  *Kellen Han-Nin Cheng
  *Aqeel S Bin Rustum
  *Nai-Wei Chen
- *CSS558 Sp14 Project2
+ *CSS558 Sp14 Project3
  */
 
 import java.rmi.Naming;
@@ -30,18 +30,18 @@ public class RMIServer {
 
 			String name2 = "KVSync";
 			RMItwophasecommit stub2 = (RMItwophasecommit)UnicastRemoteObject.toStub(kvs);
-			Registry reg2 = LocateRegistry.createRegistry(1098);
+//			Registry reg2 = LocateRegistry.createRegistry(1098);
 			reg.bind(name2, stub2);
 
 			List<RMItwophasecommit> my_replicated_servers = new ArrayList<RMItwophasecommit>();
 
 			int i = 0;
 			ArrayList<String> missingServers = new ArrayList<String>(Arrays.asList(args));
-			System.out.println(args[0]);
-			System.out.println(missingServers.size());
-			for(String s:missingServers){
-				System.out.println(s);
-			}
+//			System.out.println(args[0]);
+//			System.out.println(missingServers.size());
+//			for(String s:missingServers){
+//				System.out.println(s);
+//			}
 			RMItwophasecommit tpc;
 			while(!missingServers.isEmpty()){
 				System.out.println("Trying server: " +missingServers.get(0));
@@ -56,8 +56,6 @@ public class RMIServer {
 				}catch(Exception ex){
 					System.out.println("Failed to connect to " + missingServers.get(0));
 				}
-//				i++;
-//				i = i % (missingServers.size());
 			}
 
 			kvs.setMy_replicated_servers(my_replicated_servers);

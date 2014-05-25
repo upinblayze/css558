@@ -150,9 +150,13 @@ public class KVStore implements KVService , RMItwophasecommit {
 	}
 
 	@Override
-	synchronized public boolean tpcACK(String the_request_id, String... the_request)
+	synchronized public boolean tpcRequest(String the_request_id, String... the_request)
 			throws RemoteException {
 		// TODO Auto-generated method stub
+		System.out.println("Request ID: "+the_request_id);
+		for(String s:the_request){
+			System.out.println(s);
+		}
 		requests.put(the_request_id, the_request);
 		return true;
 	}
@@ -160,7 +164,10 @@ public class KVStore implements KVService , RMItwophasecommit {
 	@Override
 	public boolean tpcGO(String the_request_id) throws RemoteException {
 		// TODO Auto-generated method stub
+
+		System.out.println("Request ID GO: "+the_request_id);
 		String[] the_request = requests.get(the_request_id);
+		
 		if(the_request.length > 1){
 			// then it is a put request
 			put(the_request[0], the_request[1]);
@@ -187,16 +194,16 @@ public class KVStore implements KVService , RMItwophasecommit {
 			boolean succeeded = false;
 			boolean [] acks = new boolean[4];
 			final String the_request_id = generateId();
-			secheduleTask(RequestType.ACK, the_request_id, -1 , acks , args);
+			scheduleTask(RequestType.ACK, the_request_id, -1 , acks , args);
 
 			int trials = 0;
 			boolean missingACK = false;
 			while(!missingACK && trials < 5){
 				missingACK = false;
-				for(int j = 0 ; j < 5 ; j++){
+				for(int j = 0 ; j < 4 ; j++){
 					if(acks[j] = false){
 						missingACK = true;
-						secheduleTask(RequestType.ACK,the_request_id, j , acks , args);
+						scheduleTask(RequestType.ACK,the_request_id, j , acks , args);
 					}
 				}
 				trials++;
@@ -205,17 +212,17 @@ public class KVStore implements KVService , RMItwophasecommit {
 			if(!missingACK){
 				//do the second phase
 				acks = new boolean[4];
-				secheduleTask(RequestType.GO,the_request_id, -1 , acks , args);
+				scheduleTask(RequestType.GO,the_request_id, -1 , acks , args);
 
 				trials = 0;
 				missingACK = false;
 				succeeded = false;
 				while(!succeeded && trials < 5){
 					missingACK = false;
-					for(int j = 0 ; j < 5 ; j++){
+					for(int j = 0 ; j < 4 ; j++){
 						if(acks[j] = false){
 							missingACK = true;
-							secheduleTask(RequestType.GO,the_request_id, j , acks , args);
+							scheduleTask(RequestType.GO,the_request_id, j , acks , args);
 						}
 					}
 					if(! missingACK){
@@ -237,7 +244,7 @@ public class KVStore implements KVService , RMItwophasecommit {
 		}
 	}
 
-	private void secheduleTask(RequestType request, final String the_request_id, 
+	private void scheduleTask(RequestType request, final String the_request_id, 
 			final int index, boolean [] acks , final String...args)throws InterruptedException, ExecutionException{
 		if(request.equals(RequestType.ACK) && index < 0){
 			int i = 0 ;
@@ -247,10 +254,10 @@ public class KVStore implements KVService , RMItwophasecommit {
 					// implement call
 					public Boolean call() throws RemoteException {
 						if(args.length == 2){
-							return rtpc.tpcACK(the_request_id, args);
+							return rtpc.tpcRequest(the_request_id, args);
 						}
 						else{
-							return rtpc.tpcACK(the_request_id, args);
+							return rtpc.tpcRequest(the_request_id, args);
 						}
 					}
 				});
@@ -259,10 +266,11 @@ public class KVStore implements KVService , RMItwophasecommit {
 				// get the result
 				try{
 					acks[i] = ((Boolean) f.get(1, TimeUnit.SECONDS)).booleanValue();
+					System.out.println("Ackknowledge: "+acks[i]);
 				}catch (Exception e) {
 					logger.log("Timeout", true);
-					f.cancel(true);
 				}
+				f.cancel(true);
 				i++;
 			}
 		}
@@ -273,10 +281,10 @@ public class KVStore implements KVService , RMItwophasecommit {
 				// implement call
 				public Boolean call() throws RemoteException {
 					if(args.length == 2){
-						return my_replicated_servers.get(index).tpcACK(the_request_id, args);
+						return my_replicated_servers.get(index).tpcRequest(the_request_id, args);
 					}
 					else{
-						return my_replicated_servers.get(index).tpcACK(the_request_id, args);
+						return my_replicated_servers.get(index).tpcRequest(the_request_id, args);
 					}
 				}
 			});
@@ -285,10 +293,11 @@ public class KVStore implements KVService , RMItwophasecommit {
 			// get the result
 			try{
 				acks[index] = ((Boolean) f.get(1, TimeUnit.SECONDS)).booleanValue();
+				System.out.println("late Ackknowledge: "+acks[index]);
 			}catch (Exception e) {
 				logger.log("Timeout", true);
-				f.cancel(true);
 			}
+			f.cancel(true);
 
 		}
 		else if(request.equals(RequestType.GO) && index < 0){
@@ -311,10 +320,12 @@ public class KVStore implements KVService , RMItwophasecommit {
 				// get the result
 				try{
 					acks[i] = ((Boolean) f.get(1, TimeUnit.SECONDS)).booleanValue();
+
+					System.out.println("Go Ackknowledge: "+acks[i]);
 				}catch (Exception e) {
 					logger.log("Timeout", true);
-					f.cancel(true);
 				}
+				f.cancel(true);
 				i++;
 			}
 		}
@@ -337,10 +348,12 @@ public class KVStore implements KVService , RMItwophasecommit {
 			// get the result
 			try{
 				acks[index] = ((Boolean) f.get(1, TimeUnit.SECONDS)).booleanValue();
+				System.out.println("late Go Acknowledge: "+acks[index]);
 			}catch (Exception e) {
 				logger.log("Timeout", true);
-				f.cancel(true);
+				
 			}
+			f.cancel(true);
 		}
 	}
 }

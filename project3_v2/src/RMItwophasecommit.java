@@ -60,7 +60,7 @@ public interface RMItwophasecommit extends Remote{
 	 * @param the_request - this is the delete request in string form
 	 * @return
 	 */
-	boolean tpcACK(String the_request_id, String...the_request) throws RemoteException;
+	boolean tpcRequest(String the_request_id, String...the_request) throws RemoteException;
 	
 	
 }
