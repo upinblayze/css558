@@ -218,14 +218,15 @@ public class KVStore implements KVService , RMItwophasecommit {
 				missingACK = false;
 				for(int j = 0 ; j < 4 ; j++){
 					logger.log("ACK: index=" + j + " " + acks[j] + "", true);
-					if(acks[j] = false){
+					if(acks[j] == false){
 						missingACK = true;
+						logger.log("Missing acks should be true "+missingACK,true);
 						scheduleTask(RequestType.ACK,the_request_id, j , acks , args);
 					}
 				}
 				trials++;
 			}
-
+			logger.log("Missing acks? "+missingACK,true);
 			if(!missingACK){
 				//do the second phase
 				acks[0] = false;
@@ -240,13 +241,15 @@ public class KVStore implements KVService , RMItwophasecommit {
 					missingACK = false;
 					for(int j = 0 ; j < 4 ; j++){
 						logger.log("GO: index=" + j + " " + acks[j] + "", true);
-						if(acks[j] = false){
+						if(acks[j] == false){
 							missingACK = true;
+							logger.log("Missing acks should be true "+missingACK,true);
 							scheduleTask(RequestType.GO,the_request_id, j , acks , args);
 						}
 					}
 					trials++;
 				}
+				logger.log("not Missing acks? "+!missingACK,true);
 				return !missingACK;
 			}
 			else{
