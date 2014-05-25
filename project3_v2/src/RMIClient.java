@@ -19,7 +19,7 @@ import java.rmi.RemoteException;
  */
 public class RMIClient  implements Runnable {
 	/**Specifies the amount of time to sleep a thread in milliseconds */
-	private int SLEEP_TIME = 1000;
+	private int SLEEP_TIME = 1000*3;
 	
 	/**The interface for the remote object */
 	private KVService kvs;
@@ -111,7 +111,7 @@ public class RMIClient  implements Runnable {
 				+ ": " + the_key + " deleted");
 		logger.log("Client " + my_id 
 				+ " has issued request: delete("+the_key+")" , true);
-		Thread.sleep(1000);
+		Thread.sleep(SLEEP_TIME);
 	}
 
 
@@ -121,22 +121,22 @@ public class RMIClient  implements Runnable {
 		while(true) {
 			try{
 				put("key1", "value1");
-//				put("key2", "value2");
-//				put("key3", "value3");
-//				put("key4", "value4");
-//				put("key5", "value5");
-//
+				put("key2", "value2");
+				put("key3", "value3");
+				put("key4", "value4");
+				put("key5", "value5");
+				
 				get("key1");
-//				get("key2");
-//				get("key3");
-//				get("key4");
-//				get("key5");
+				get("key2");
+				get("key3");
+				get("key4");
+				get("key5");
 
 				delete("key1");
-//				delete("key2");
-//				delete("key3");
-//				delete("key4");
-//				delete("key5");
+				delete("key2");
+				delete("key3");
+				delete("key4");
+				delete("key5");
 
 				get("key1");
 

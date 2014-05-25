@@ -75,10 +75,10 @@ public class KVStore implements KVService , RMItwophasecommit {
 	@Override
 	synchronized public String get(String the_key) throws RemoteException{
 		logger.log("Server call: get (" + the_key + ")", true);
-		System.out.println("Server call: get (" + the_key + ")");
+//		System.out.println("Server call: get (" + the_key + ")");
 		String value = KVStore.get(the_key);
 		logger.log("key = " + the_key + " , value = " + value, true);
-		System.out.println("key = " + the_key + " , value = " + value);
+//		System.out.println("key = " + the_key + " , value = " + value);
 		return value;
 	}
 
@@ -97,6 +97,7 @@ public class KVStore implements KVService , RMItwophasecommit {
 			logger.log("Server call: failed to do TPC -> put <" + the_key + "," 
 					+ the_value + ">" , true);
 		}
+		logger.log(KVStore.toString(),true);
 	}
 
 	/**
@@ -121,6 +122,7 @@ public class KVStore implements KVService , RMItwophasecommit {
 		else{
 			logger.log("failed deletion of key = " + the_key + " due to failed TPC", true);
 		}
+		logger.log(KVStore.toString(),true);
 	}
 
 	@Override
@@ -136,17 +138,31 @@ public class KVStore implements KVService , RMItwophasecommit {
 	}
 
 	@Override
-	public int tpcPut(String the_request_id, String... the_request)
+	public void tpcPut(String key, String value)
 			throws RemoteException {
 		// TODO Auto-generated method stub
-		return 0;
+		KVStore.put(key, value);
+		logger.log("Server call: put <" + key + "," 
+				+ value + ">" , true);
 	}
 
 	@Override
-	public int tpcDelete(String the_request_id, String... the_request)
+	public void tpcDelete(String the_key)
 			throws RemoteException {
 		// TODO Auto-generated method stub
-		return 0;
+		if(!KVStore.containsKey(the_key)){
+			logger.log("Key = " + the_key + " not found");
+		} else {
+			KVStore.remove(the_key);
+			logger.log("Server call: delete(" + the_key + ")", true);
+		}
+		if(!KVStore.containsKey(the_key)){
+			logger.log("successful deletion of key = " + the_key, true);
+			logger.log(KVStore.toString(), true);
+		} else{
+			logger.log("failed deletion of key = " + the_key, true);
+		}
+//		return 0;
 	}
 
 	@Override
@@ -167,16 +183,16 @@ public class KVStore implements KVService , RMItwophasecommit {
 
 		System.out.println("Request ID GO: "+the_request_id);
 		String[] the_request = requests.get(the_request_id);
-		
+
 		if(the_request.length > 1){
 			// then it is a put request
-			put(the_request[0], the_request[1]);
+			tpcPut(the_request[0], the_request[1]);
 			requests.remove(the_request_id);
 			return true;
 		}
 		else if(requests.get(the_request_id).length == 1){
 			// then it is a delete request
-			delete(the_request[0]);
+			tpcDelete(the_request[0]);
 			requests.remove(the_request_id);
 			return true;
 		}
@@ -188,19 +204,20 @@ public class KVStore implements KVService , RMItwophasecommit {
 		return Inet4Address.getLocalHost() + "-" + Logger.getTimestamp();
 	}
 
-	public boolean tpc(final String...args){
+	synchronized public boolean tpc(final String...args){
 		// TODO Auto-generated method stub
 		try{
 			boolean succeeded = false;
-			boolean [] acks = new boolean[4];
+			boolean [] acks = {false,false,false,false};
 			final String the_request_id = generateId();
 			scheduleTask(RequestType.ACK, the_request_id, -1 , acks , args);
 
 			int trials = 0;
-			boolean missingACK = false;
-			while(!missingACK && trials < 5){
+			boolean missingACK = true;
+			while(missingACK && trials < 5){
 				missingACK = false;
 				for(int j = 0 ; j < 4 ; j++){
+					logger.log("ACK: index=" + j + " " + acks[j] + "", true);
 					if(acks[j] = false){
 						missingACK = true;
 						scheduleTask(RequestType.ACK,the_request_id, j , acks , args);
@@ -211,29 +228,26 @@ public class KVStore implements KVService , RMItwophasecommit {
 
 			if(!missingACK){
 				//do the second phase
-				acks = new boolean[4];
+				acks[0] = false;
+				acks[1] = false;
+				acks[2] = false;
+				acks[3] = false;
 				scheduleTask(RequestType.GO,the_request_id, -1 , acks , args);
 
 				trials = 0;
-				missingACK = false;
-				succeeded = false;
-				while(!succeeded && trials < 5){
+				missingACK = true;
+				while(missingACK && trials < 5){
 					missingACK = false;
 					for(int j = 0 ; j < 4 ; j++){
+						logger.log("GO: index=" + j + " " + acks[j] + "", true);
 						if(acks[j] = false){
 							missingACK = true;
 							scheduleTask(RequestType.GO,the_request_id, j , acks , args);
 						}
 					}
-					if(! missingACK){
-						succeeded = true;
-					}
-					else
-					{
-						trials++;
-					}
+					trials++;
 				}
-				return succeeded;
+				return !missingACK;
 			}
 			else{
 				return false;
@@ -262,13 +276,15 @@ public class KVStore implements KVService , RMItwophasecommit {
 					}
 				});
 				// start the thread to execute it (you may also use an Executor)
-				new Thread(f).start();
+				Thread t = new Thread(f);
+				t.start();
 				// get the result
 				try{
 					acks[i] = ((Boolean) f.get(1, TimeUnit.SECONDS)).booleanValue();
 					System.out.println("Ackknowledge: "+acks[i]);
 				}catch (Exception e) {
 					logger.log("Timeout", true);
+					logger.log(acks[i]+" "+i,true);
 				}
 				f.cancel(true);
 				i++;
@@ -296,6 +312,7 @@ public class KVStore implements KVService , RMItwophasecommit {
 				System.out.println("late Ackknowledge: "+acks[index]);
 			}catch (Exception e) {
 				logger.log("Timeout", true);
+				logger.log(acks[index]+" "+index,true);
 			}
 			f.cancel(true);
 
@@ -324,6 +341,7 @@ public class KVStore implements KVService , RMItwophasecommit {
 					System.out.println("Go Ackknowledge: "+acks[i]);
 				}catch (Exception e) {
 					logger.log("Timeout", true);
+					logger.log(acks[i]+" "+i,true);
 				}
 				f.cancel(true);
 				i++;
@@ -351,7 +369,8 @@ public class KVStore implements KVService , RMItwophasecommit {
 				System.out.println("late Go Acknowledge: "+acks[index]);
 			}catch (Exception e) {
 				logger.log("Timeout", true);
-				
+				logger.log(acks[index]+" "+index,true);
+
 			}
 			f.cancel(true);
 		}

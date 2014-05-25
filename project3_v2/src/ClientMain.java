@@ -18,7 +18,7 @@ public class ClientMain {
 	/**A constant variable for specifying the number of client threads 
 	 * to create.
 	 */
-	private static int NUM_CLIENTS = 2;
+	private static int NUM_CLIENTS = 1;
 
 	/**
 	 * The main method, where the client threads are created.

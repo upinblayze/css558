@@ -30,7 +30,7 @@ public class RMIServer {
 
 			String name2 = "KVSync";
 			RMItwophasecommit stub2 = (RMItwophasecommit)UnicastRemoteObject.toStub(kvs);
-//			Registry reg2 = LocateRegistry.createRegistry(1098);
+//			Registry reg2 = LocateRegistry.createRegistry(1088);
 			reg.bind(name2, stub2);
 
 			List<RMItwophasecommit> my_replicated_servers = new ArrayList<RMItwophasecommit>();

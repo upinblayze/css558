@@ -18,7 +18,7 @@ public interface RMItwophasecommit extends Remote{
 	 * @param the_request - the put call to be replicated in string form
 	 * @return - the ACK message
 	 */
-	int tpcPut(String the_request_id, String...the_request) throws RemoteException;
+	void tpcPut(String the_key, String the_value) throws RemoteException;
 	
 	/**
 	 * This is the delete request to be replicated on the replicate servers. 
@@ -27,7 +27,7 @@ public interface RMItwophasecommit extends Remote{
 	 * @param the_request - this is the delete request in string form
 	 * @return
 	 */
-	int tpcDelete(String the_request_id , String...the_request) throws RemoteException;
+	void tpcDelete(String the_key) throws RemoteException;
 	
 	/**
 	 * This is the GO message in the second phase of the 2PC. This is
