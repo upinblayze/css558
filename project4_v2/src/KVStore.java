@@ -34,6 +34,8 @@ public class KVStore implements KVService, IPaxos {
 	/**The hash map used to store and retrieve the key-value parings.*/
 	private Map<String, String[]> requests;
 
+	private List<String> my_log = new ArrayList<String>();
+	
 	public enum RequestType {ACK, GO}
 	/**
 	 * A simple constructor
