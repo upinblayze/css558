@@ -29,11 +29,11 @@ public class RMIServer {
 			reg.bind(name, stub);
 
 			String name2 = "KVSync";
-			RMItwophasecommit stub2 = (RMItwophasecommit)UnicastRemoteObject.toStub(kvs);
+			IPaxos stub2 = (IPaxos)UnicastRemoteObject.toStub(kvs);
 //			Registry reg2 = LocateRegistry.createRegistry(1088);
 			reg.bind(name2, stub2);
 
-			List<RMItwophasecommit> my_replicated_servers = new ArrayList<RMItwophasecommit>();
+			List<IPaxos> my_replicated_servers = new ArrayList<IPaxos>();
 
 			int i = 0;
 			ArrayList<String> missingServers = new ArrayList<String>(Arrays.asList(args));
@@ -42,13 +42,13 @@ public class RMIServer {
 //			for(String s:missingServers){
 //				System.out.println(s);
 //			}
-			RMItwophasecommit tpc;
+			IPaxos paxos;
 			while(!missingServers.isEmpty()){
 				System.out.println("Trying server: " +missingServers.get(0));
 				try{
-					tpc = (RMItwophasecommit) Naming.lookup("//"+ missingServers.get(0) +"/"+name2);
-					if(tpc != null){
-						my_replicated_servers.add(tpc);
+					paxos = (IPaxos) Naming.lookup("//"+ missingServers.get(0) +"/"+name2);
+					if(paxos != null){
+						my_replicated_servers.add(paxos);
 						missingServers.remove(i);
 						System.out.println(missingServers.isEmpty());
 
