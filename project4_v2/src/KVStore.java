@@ -36,6 +36,8 @@ public class KVStore implements KVService, IPaxos {
 
 	private List<String> my_log = new ArrayList<String>();
 	
+	private int nextEntryIndex;
+	
 	public enum RequestType {ACK, GO}
 	/**
 	 * A simple constructor
@@ -90,16 +92,27 @@ public class KVStore implements KVService, IPaxos {
 	@Override
 	synchronized public void put(String the_key, String the_value) 
 			throws RemoteException{
-		if(tpc(the_key, the_value)){
-			KVStore.put(the_key, the_value);
-			logger.log("Server call: put <" + the_key + "," 
-					+ the_value + ">" , true);
+		String acceptor_reply;
+		
+		//assume leader
+		for(IPaxos p: my_replicated_servers) {
+			//prepare
+			accpetor_replay = p.prepare()
+			//accept
+			
 		}
-		else{
-			logger.log("Server call: failed to do TPC -> put <" + the_key + "," 
-					+ the_value + ">" , true);
-		}
-		logger.log(KVStore.toString(),true);
+		
+		
+//		
+//			KVStore.put(the_key, the_value);
+//			logger.log("Server call: put <" + the_key + "," 
+//					+ the_value + ">" , true);
+//
+//		
+//			logger.log("Server call: failed to do TPC -> put <" + the_key + "," 
+//					+ the_value + ">" , true);
+//		
+//		logger.log(KVStore.toString(),true);
 	}
 
 	/**
@@ -154,5 +167,6 @@ public class KVStore implements KVService, IPaxos {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
 
 }
