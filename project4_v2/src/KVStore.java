@@ -100,7 +100,7 @@ public class KVStore implements KVService, IPaxos {
 		String temp = val;
 		int quorum_count = 0;
 		String prep_reply;
-		String[] prep_vals;
+		String[] vals;
 
 		if(my_log.get(my_firstUnchosenIndex) != null) {
 			temp = val;
@@ -115,8 +115,8 @@ public class KVStore implements KVService, IPaxos {
 				for(IPaxos p: my_replicated_servers) {
 					//prepare
 					prep_reply = p.prepare(my_firstUnchosenIndex); //timeout??
-					prep_vals = prep_reply.split("\\s+");
-					if(prep_vals[0].equals('t') || prep_vals[0].equals('f') ) {
+					vals = prep_reply.split("\\s+");
+					if(vals[0].equals('t') || vals[0].equals('f') ) {
 						quorum_count++;
 					}
 				}
@@ -136,6 +136,14 @@ public class KVStore implements KVService, IPaxos {
 										p.success(acceptorsFirstUnchosenIndex, 
 												my_log.get(acceptorsFirstUnchosenIndex)));
 					}
+				}
+			}
+			
+			if(quorum_count >= QUORUM_COUNT) {
+				vals = val.split("\\s+");
+				vals[vals.length-1] = "t";
+				for(int i = 0; i < vals.length; i++) {
+					val = vals[i] + " ";
 				}
 			}
 			if(val.equals(temp)) {
@@ -168,7 +176,7 @@ public class KVStore implements KVService, IPaxos {
 		String temp = val;
 		int quorum_count = 0;
 		String prep_reply;
-		String[] prep_vals;
+		String[] vals;
 
 		if(my_log.get(my_firstUnchosenIndex) != null) {
 			temp = val;
@@ -177,33 +185,43 @@ public class KVStore implements KVService, IPaxos {
 
 		while(true) {
 			//assume leader
-			while (quorum_count < QUORUM_COUNT) {
+			while (quorum_count < QUORUM_COUNT - 1) {
 				quorum_count = 0;
 				//prepare phase
 				for(IPaxos p: my_replicated_servers) {
 					//prepare
 					prep_reply = p.prepare(my_firstUnchosenIndex); //timeout??
-					prep_vals = prep_reply.split("\\s+");
-					if(prep_vals[0].equals('t') || prep_vals[0].equals('f') ) {
+					vals = prep_reply.split("\\s+");
+					if(vals[0].equals('t') || vals[0].equals('f') ) {
 						quorum_count++;
 					}
 				}
 			}
 
 			//accept phase
-			quorum_count = 0;
-			int acceptorsFirstUnchosenIndex;
-			for(IPaxos p: my_replicated_servers) {
-				acceptorsFirstUnchosenIndex = 
-						Integer.parseInt(p.accept(my_firstUnchosenIndex, val)); //timeouts??
-				while(acceptorsFirstUnchosenIndex < my_firstUnchosenIndex) {
+			while (quorum_count < QUORUM_COUNT - 1) {
+				quorum_count = 0;
+				int acceptorsFirstUnchosenIndex;
+				for(IPaxos p: my_replicated_servers) {
 					acceptorsFirstUnchosenIndex = 
-							Integer.parseInt(
-									p.success(acceptorsFirstUnchosenIndex, 
-											my_log.get(acceptorsFirstUnchosenIndex)));
+							Integer.parseInt(p.accept(my_firstUnchosenIndex, val)); //timeouts??
+					quorum_count++;
+					while(acceptorsFirstUnchosenIndex < my_firstUnchosenIndex) {
+						acceptorsFirstUnchosenIndex = 
+								Integer.parseInt(
+										p.success(acceptorsFirstUnchosenIndex, 
+												my_log.get(acceptorsFirstUnchosenIndex)));
+					}
 				}
 			}
-
+			
+			if(quorum_count >= QUORUM_COUNT) {
+				vals = val.split("\\s+");
+				vals[vals.length-1] = "t";
+				for(int i = 0; i < vals.length; i++) {
+					val = vals[i] + " ";
+				}
+			}
 			if(val.equals(temp)) {
 				break;
 			} else {
