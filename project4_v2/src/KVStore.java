@@ -21,9 +21,9 @@ import java.util.Map;
  */
 public class KVStore implements KVService, IPaxos {
 	private static int QUORUM_COUNT = 3;
-	
+
 	private static int SERVER_COUNT = 5;
-	
+
 	private static int RETRIES = 5;
 
 	/** The logger used to create and append to the server's log file. */
@@ -109,7 +109,7 @@ public class KVStore implements KVService, IPaxos {
 
 		while(true) {
 			//assume leader
-			while (quorum_count < QUORUM_COUNT) {
+			while (quorum_count < QUORUM_COUNT - 1) {
 				quorum_count = 0;
 				//prepare phase
 				for(IPaxos p: my_replicated_servers) {
@@ -121,28 +121,30 @@ public class KVStore implements KVService, IPaxos {
 					}
 				}
 			}
-		
+
 			//accept phase
-			quorum_count = 0;
-			int acceptorsFirstUnchosenIndex;
-			for(IPaxos p: my_replicated_servers) {
-				acceptorsFirstUnchosenIndex = 
-						Integer.parseInt(p.accept(my_firstUnchosenIndex, val)); //timeouts??
-				while(acceptorsFirstUnchosenIndex < my_firstUnchosenIndex) {
+			while (quorum_count < QUORUM_COUNT - 1) {
+				quorum_count = 0;
+				int acceptorsFirstUnchosenIndex;
+				for(IPaxos p: my_replicated_servers) {
 					acceptorsFirstUnchosenIndex = 
-							Integer.parseInt(
-									p.success(acceptorsFirstUnchosenIndex, 
-									my_log.get(acceptorsFirstUnchosenIndex)));
+							Integer.parseInt(p.accept(my_firstUnchosenIndex, val)); //timeouts??
+					quorum_count++;
+					while(acceptorsFirstUnchosenIndex < my_firstUnchosenIndex) {
+						acceptorsFirstUnchosenIndex = 
+								Integer.parseInt(
+										p.success(acceptorsFirstUnchosenIndex, 
+												my_log.get(acceptorsFirstUnchosenIndex)));
+					}
 				}
 			}
-			
 			if(val.equals(temp)) {
 				break;
 			} else {
 				val = temp;
 			}
 		}
-		
+
 		my_KVStore.put(the_key, the_value);
 
 		//		
@@ -187,7 +189,7 @@ public class KVStore implements KVService, IPaxos {
 					}
 				}
 			}
-		
+
 			//accept phase
 			quorum_count = 0;
 			int acceptorsFirstUnchosenIndex;
@@ -198,17 +200,17 @@ public class KVStore implements KVService, IPaxos {
 					acceptorsFirstUnchosenIndex = 
 							Integer.parseInt(
 									p.success(acceptorsFirstUnchosenIndex, 
-									my_log.get(acceptorsFirstUnchosenIndex)));
+											my_log.get(acceptorsFirstUnchosenIndex)));
 				}
 			}
-			
+
 			if(val.equals(temp)) {
 				break;
 			} else {
 				val = temp;
 			}
 		}
-		
+
 		my_KVStore.remove(the_key);
 
 		//		if(tpc(the_key)){
@@ -228,7 +230,7 @@ public class KVStore implements KVService, IPaxos {
 		//		else{
 		//			logger.log("failed deletion of key = " + the_key + " due to failed TPC", true);
 		//		}
-//		logger.log(my_KVStore.toString(),true);
+		//		logger.log(my_KVStore.toString(),true);
 	}
 
 	private String generateId() throws UnknownHostException{
@@ -248,7 +250,7 @@ public class KVStore implements KVService, IPaxos {
 		if(n<my_log.size()){
 			proposal=my_log.get(n);
 		}else{
-//			catch the array up to proposal size
+			//			catch the array up to proposal size
 			while(my_log.size()<=n){
 				my_log.add(proposal);
 			}
