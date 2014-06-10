@@ -36,7 +36,7 @@ public class KVStore implements KVService, IPaxos {
 
 	private List<String> my_log = new ArrayList<String>();
 	
-	private int nextEntryIndex;
+	private int my_nextEntryIndex;
 	
 	public enum RequestType {ACK, GO}
 	/**
@@ -92,14 +92,16 @@ public class KVStore implements KVService, IPaxos {
 	@Override
 	synchronized public void put(String the_key, String the_value) 
 			throws RemoteException{
+		int prepared_count;
 		String acceptor_reply;
 		
 		//assume leader
+		
+		//prepare phase
 		for(IPaxos p: my_replicated_servers) {
 			//prepare
-			accpetor_replay = p.prepare()
-			//accept
-			
+			acceptor_reply = p.prepare(my_nextEntryIndex);
+			//if 
 		}
 		
 		
@@ -120,23 +122,23 @@ public class KVStore implements KVService, IPaxos {
 	 */
 	@Override
 	synchronized public void delete(String the_key) throws RemoteException{
-		if(tpc(the_key)){
-			if(!KVStore.containsKey(the_key)){
-				logger.log("Key = " + the_key + " not found");
-			} else {
-				KVStore.remove(the_key);
-				logger.log("Server call: delete(" + the_key + ")", true);
-			}
-			if(!KVStore.containsKey(the_key)){
-				logger.log("successful deletion of key = " + the_key, true);
-				logger.log(KVStore.toString(), true);
-			} else{
-				logger.log("failed deletion of key = " + the_key, true);
-			}
-		}
-		else{
-			logger.log("failed deletion of key = " + the_key + " due to failed TPC", true);
-		}
+//		if(tpc(the_key)){
+//			if(!KVStore.containsKey(the_key)){
+//				logger.log("Key = " + the_key + " not found");
+//			} else {
+//				KVStore.remove(the_key);
+//				logger.log("Server call: delete(" + the_key + ")", true);
+//			}
+//			if(!KVStore.containsKey(the_key)){
+//				logger.log("successful deletion of key = " + the_key, true);
+//				logger.log(KVStore.toString(), true);
+//			} else{
+//				logger.log("failed deletion of key = " + the_key, true);
+//			}
+//		}
+//		else{
+//			logger.log("failed deletion of key = " + the_key + " due to failed TPC", true);
+//		}
 		logger.log(KVStore.toString(),true);
 	}
 
