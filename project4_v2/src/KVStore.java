@@ -301,12 +301,22 @@ public class KVStore implements KVService, IPaxos {
 	@Override
 	public String accept(int n, String value) {
 		// TODO Auto-generated method stub
-		return null;
+		boolean foundFirstIndex=false;
+		int index=0;
+		while(!foundFirstIndex && index<my_log.size()){
+			String[] localVal=my_log.get(index).split(" ");
+			if(localVal[localVal.length-1].equalsIgnoreCase("F")){
+				foundFirstIndex=true;
+			}
+		}
+		return index+"";
 	}
 
 	@Override
 	public String success(int index, String value) {
 		// TODO Auto-generated method stub
+
+		my_log.set(index, value);
 		return null;
 	}
 
