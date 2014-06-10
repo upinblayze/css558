@@ -154,6 +154,17 @@ public class KVStore implements KVService, IPaxos {
 		}
 
 		my_KVStore.put(the_key, the_value);
+		
+		for(int i = my_firstUnchosenIndex; i < my_log.size(); i++) {
+			temp = my_log.get(i);
+			vals = temp.split("\\s+");
+			if(vals[vals.length-1].equals('t')) {
+				my_firstUnchosenIndex++;
+			} else if (vals[vals.length-1].equals('t')) {
+				my_firstUnchosenIndex = i;
+				break;
+			}
+		}
 
 		//		
 		//			KVStore.put(the_key, the_value);
@@ -178,7 +189,7 @@ public class KVStore implements KVService, IPaxos {
 		String prep_reply;
 		String[] vals;
 
-		if(my_log.get(my_firstUnchosenIndex) != null) {
+		if(my_log.get(my_firstUnchosenIndex) != null ) {
 			temp = val;
 			val = my_log.get(my_firstUnchosenIndex);
 		}
@@ -228,8 +239,19 @@ public class KVStore implements KVService, IPaxos {
 				val = temp;
 			}
 		}
-
+		
 		my_KVStore.remove(the_key);
+		
+		for(int i = my_firstUnchosenIndex; i < my_log.size(); i++) {
+			temp = my_log.get(i);
+			vals = temp.split("\\s+");
+			if(vals[vals.length-1].equals('t')) {
+				my_firstUnchosenIndex++;
+			} else if (vals[vals.length-1].equals('t')) {
+				my_firstUnchosenIndex = i;
+				break;
+			}
+		}
 
 		//		if(tpc(the_key)){
 		//			if(!KVStore.containsKey(the_key)){
