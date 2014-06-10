@@ -7,8 +7,8 @@ public interface IPaxos extends Remote {
 	
 	String prepare(int n);
 	
-	String accept(int n, int value);
+	String accept(int n, String value);
 	
-	String success(int index, int value);
+	String success(int index, String value);
 	
 }

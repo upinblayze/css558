@@ -22,6 +22,12 @@ import java.util.concurrent.TimeUnit;
  * class reside on the server.
  */
 public class KVStore implements KVService, IPaxos {
+	private static int QUORUM_COUNT = 3;
+	
+	private static int SERVER_COUNT = 5;
+	
+	private static int RETRIES = 5;
+
 	/** The logger used to create and append to the server's log file. */
 	private Logger logger;
 
@@ -35,9 +41,9 @@ public class KVStore implements KVService, IPaxos {
 	private Map<String, String[]> requests;
 
 	private List<String> my_log = new ArrayList<String>();
-	
-	private int my_nextEntryIndex;
-	
+
+	private int my_firstUnchosenIndex;
+
 	public enum RequestType {ACK, GO}
 	/**
 	 * A simple constructor
@@ -79,10 +85,10 @@ public class KVStore implements KVService, IPaxos {
 	@Override
 	synchronized public String get(String the_key) throws RemoteException{
 		logger.log("Server call: get (" + the_key + ")", true);
-//		System.out.println("Server call: get (" + the_key + ")");
+		//		System.out.println("Server call: get (" + the_key + ")");
 		String value = KVStore.get(the_key);
 		logger.log("key = " + the_key + " , value = " + value, true);
-//		System.out.println("key = " + the_key + " , value = " + value);
+		//		System.out.println("key = " + the_key + " , value = " + value);
 		return value;
 	}
 
@@ -92,29 +98,63 @@ public class KVStore implements KVService, IPaxos {
 	@Override
 	synchronized public void put(String the_key, String the_value) 
 			throws RemoteException{
-		int prepared_count;
-		String acceptor_reply;
+		String val = the_value;
+		int quorum_count = 0;
+		String prep_reply;
+		String[] prep_vals;
+
+		if(my_log.get(my_firstUnchosenIndex) != null) {
+			val = my_log.get(my_firstUnchosenIndex);
+		}
+
+		while(true) {
+			//assume leader
+			while (quorum_count < QUORUM_COUNT) {
+				quorum_count = 0;
+				//prepare phase
+				for(IPaxos p: my_replicated_servers) {
+					//prepare
+					prep_reply = p.prepare(my_firstUnchosenIndex); //timeout??
+					prep_vals = prep_reply.split("\\s+");
+					if(prep_vals[0].equals('t') || prep_vals[0].equals('f') ) {
+						quorum_count++;
+					}
+				}
+			}
 		
-		//assume leader
-		
-		//prepare phase
-		for(IPaxos p: my_replicated_servers) {
-			//prepare
-			acceptor_reply = p.prepare(my_nextEntryIndex);
-			//if 
+			//accept phase
+			quorum_count = 0;
+			int acceptorsFirstUnchosenIndex;
+			for(IPaxos p: my_replicated_servers) {
+				acceptorsFirstUnchosenIndex = 
+						Integer.parseInt(p.accept(my_firstUnchosenIndex, val)); //timeouts??
+				while(acceptorsFirstUnchosenIndex < my_firstUnchosenIndex) {
+					acceptorsFirstUnchosenIndex = 
+							Integer.parseInt(
+									p.success(acceptorsFirstUnchosenIndex, 
+									my_log.get(acceptorsFirstUnchosenIndex)));
+				}
+			}
+			
+			if(val.equals(the_value)) {
+				break;
+			} else {
+				val = the_value;
+			}
 		}
 		
-		
-//		
-//			KVStore.put(the_key, the_value);
-//			logger.log("Server call: put <" + the_key + "," 
-//					+ the_value + ">" , true);
-//
-//		
-//			logger.log("Server call: failed to do TPC -> put <" + the_key + "," 
-//					+ the_value + ">" , true);
-//		
-//		logger.log(KVStore.toString(),true);
+		KVStore.put(the_key, the_value);
+
+		//		
+		//			KVStore.put(the_key, the_value);
+		//			logger.log("Server call: put <" + the_key + "," 
+		//					+ the_value + ">" , true);
+		//
+		//		
+		//			logger.log("Server call: failed to do TPC -> put <" + the_key + "," 
+		//					+ the_value + ">" , true);
+		//		
+		//		logger.log(KVStore.toString(),true);
 	}
 
 	/**
@@ -122,23 +162,23 @@ public class KVStore implements KVService, IPaxos {
 	 */
 	@Override
 	synchronized public void delete(String the_key) throws RemoteException{
-//		if(tpc(the_key)){
-//			if(!KVStore.containsKey(the_key)){
-//				logger.log("Key = " + the_key + " not found");
-//			} else {
-//				KVStore.remove(the_key);
-//				logger.log("Server call: delete(" + the_key + ")", true);
-//			}
-//			if(!KVStore.containsKey(the_key)){
-//				logger.log("successful deletion of key = " + the_key, true);
-//				logger.log(KVStore.toString(), true);
-//			} else{
-//				logger.log("failed deletion of key = " + the_key, true);
-//			}
-//		}
-//		else{
-//			logger.log("failed deletion of key = " + the_key + " due to failed TPC", true);
-//		}
+		//		if(tpc(the_key)){
+		//			if(!KVStore.containsKey(the_key)){
+		//				logger.log("Key = " + the_key + " not found");
+		//			} else {
+		//				KVStore.remove(the_key);
+		//				logger.log("Server call: delete(" + the_key + ")", true);
+		//			}
+		//			if(!KVStore.containsKey(the_key)){
+		//				logger.log("successful deletion of key = " + the_key, true);
+		//				logger.log(KVStore.toString(), true);
+		//			} else{
+		//				logger.log("failed deletion of key = " + the_key, true);
+		//			}
+		//		}
+		//		else{
+		//			logger.log("failed deletion of key = " + the_key + " due to failed TPC", true);
+		//		}
 		logger.log(KVStore.toString(),true);
 	}
 
@@ -159,13 +199,13 @@ public class KVStore implements KVService, IPaxos {
 	}
 
 	@Override
-	public String accept(int n, int value) {
+	public String accept(int n, String value) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public String success(int index, int value) {
+	public String success(int index, String value) {
 		// TODO Auto-generated method stub
 		return null;
 	}
