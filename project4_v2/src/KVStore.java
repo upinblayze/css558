@@ -30,7 +30,7 @@ public class KVStore implements KVService, IPaxos {
 	private Logger logger;
 
 	/**The hash map used to store and retrieve the key-value parings.*/
-	private HashMap<String,String> KVStore;
+	private HashMap<String,String> my_KVStore;
 
 	/**The hash map used to store and retrieve the key-value parings.*/
 	private List<IPaxos> my_replicated_servers;
@@ -48,7 +48,7 @@ public class KVStore implements KVService, IPaxos {
 	 * @throws IOExceptions
 	 */
 	public KVStore() throws IOException{
-		KVStore=new HashMap<String,String>();
+		my_KVStore=new HashMap<String,String>();
 		logger = new Logger("server.log");
 		logger.log("RPC.Server start running on : " 
 				+ Inet4Address.getLocalHost() , true);
@@ -84,7 +84,7 @@ public class KVStore implements KVService, IPaxos {
 	synchronized public String get(String the_key) throws RemoteException{
 		logger.log("Server call: get (" + the_key + ")", true);
 		//		System.out.println("Server call: get (" + the_key + ")");
-		String value = KVStore.get(the_key);
+		String value = my_KVStore.get(the_key);
 		logger.log("key = " + the_key + " , value = " + value, true);
 		//		System.out.println("key = " + the_key + " , value = " + value);
 		return value;
@@ -96,12 +96,14 @@ public class KVStore implements KVService, IPaxos {
 	@Override
 	synchronized public void put(String the_key, String the_value) 
 			throws RemoteException{
-		String val = the_value;
+		String val = "put "+the_key+" "+the_value+" f";
+		String temp = val;
 		int quorum_count = 0;
 		String prep_reply;
 		String[] prep_vals;
 
 		if(my_log.get(my_firstUnchosenIndex) != null) {
+			temp = val;
 			val = my_log.get(my_firstUnchosenIndex);
 		}
 
@@ -134,14 +136,14 @@ public class KVStore implements KVService, IPaxos {
 				}
 			}
 			
-			if(val.equals(the_value)) {
+			if(val.equals(temp)) {
 				break;
 			} else {
-				val = the_value;
+				val = temp;
 			}
 		}
 		
-		KVStore.put(the_key, the_value);
+		my_KVStore.put(the_key, the_value);
 
 		//		
 		//			KVStore.put(the_key, the_value);
@@ -160,6 +162,55 @@ public class KVStore implements KVService, IPaxos {
 	 */
 	@Override
 	synchronized public void delete(String the_key) throws RemoteException{
+		String val = "put "+the_key+" f";
+		String temp = val;
+		int quorum_count = 0;
+		String prep_reply;
+		String[] prep_vals;
+
+		if(my_log.get(my_firstUnchosenIndex) != null) {
+			temp = val;
+			val = my_log.get(my_firstUnchosenIndex);
+		}
+
+		while(true) {
+			//assume leader
+			while (quorum_count < QUORUM_COUNT) {
+				quorum_count = 0;
+				//prepare phase
+				for(IPaxos p: my_replicated_servers) {
+					//prepare
+					prep_reply = p.prepare(my_firstUnchosenIndex); //timeout??
+					prep_vals = prep_reply.split("\\s+");
+					if(prep_vals[0].equals('t') || prep_vals[0].equals('f') ) {
+						quorum_count++;
+					}
+				}
+			}
+		
+			//accept phase
+			quorum_count = 0;
+			int acceptorsFirstUnchosenIndex;
+			for(IPaxos p: my_replicated_servers) {
+				acceptorsFirstUnchosenIndex = 
+						Integer.parseInt(p.accept(my_firstUnchosenIndex, val)); //timeouts??
+				while(acceptorsFirstUnchosenIndex < my_firstUnchosenIndex) {
+					acceptorsFirstUnchosenIndex = 
+							Integer.parseInt(
+									p.success(acceptorsFirstUnchosenIndex, 
+									my_log.get(acceptorsFirstUnchosenIndex)));
+				}
+			}
+			
+			if(val.equals(temp)) {
+				break;
+			} else {
+				val = temp;
+			}
+		}
+		
+		my_KVStore.remove(the_key);
+
 		//		if(tpc(the_key)){
 		//			if(!KVStore.containsKey(the_key)){
 		//				logger.log("Key = " + the_key + " not found");
@@ -177,7 +228,7 @@ public class KVStore implements KVService, IPaxos {
 		//		else{
 		//			logger.log("failed deletion of key = " + the_key + " due to failed TPC", true);
 		//		}
-		logger.log(KVStore.toString(),true);
+//		logger.log(my_KVStore.toString(),true);
 	}
 
 	private String generateId() throws UnknownHostException{
