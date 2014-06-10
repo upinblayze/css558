@@ -10,12 +10,10 @@ import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
-import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.RunnableFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * This is a simple class that implements a key-value store.  Instances of this
@@ -195,7 +193,16 @@ public class KVStore implements KVService, IPaxos {
 	@Override
 	public String prepare(int n) {
 		// TODO Auto-generated method stub
-		return null;
+		String proposal=null+" F";
+		if(n<my_log.size()){
+			proposal=my_log.get(n);
+		}else{
+//			catch the array up to proposal size
+			while(my_log.size()<=n){
+				my_log.add(proposal);
+			}
+		}
+		return proposal;
 	}
 
 	@Override
