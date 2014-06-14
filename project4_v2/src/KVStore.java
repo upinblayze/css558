@@ -12,8 +12,12 @@ import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.PriorityQueue;
 import java.util.Stack;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * This is a simple class that implements a key-value store.  Instances of this
@@ -38,21 +42,27 @@ public class KVStore implements KVService, IPaxos {
 	/**The hash map used to store and retrieve the key-value parings.*/
 	private Map<String, String[]> requests;
 
-	private List<String> my_log = new ArrayList<String>();
+	private Map<Float,String> my_log;
 
 	private int my_firstUnchosenIndex;
+	
+	private BlockingQueue<String> requests_queue;
+	
+	private int server_id;
 
-	public enum RequestType {ACK, GO}
 	/**
 	 * A simple constructor
 	 * @throws IOExceptions
 	 */
-	public KVStore() throws IOException{
+	public KVStore(int server_id) throws IOException{
+		this.server_id = server_id;
 		my_KVStore=new HashMap<String,String>();
 		logger = new Logger("server.log");
 		logger.log("RPC.Server start running on : " 
 				+ Inet4Address.getLocalHost() , true);
 		requests = new HashMap<String, String[]>();
+		requests_queue = new LinkedBlockingQueue<String>();
+		my_log = new HashMap<Float, String>();
 	}
 
 	public List<IPaxos> getMy_replicated_servers() {
@@ -68,12 +78,13 @@ public class KVStore implements KVService, IPaxos {
 		return requests;
 	}
 
-	synchronized public void addRequest(String the_request_id, String...the_request){
-		requests.put(the_request_id, the_request);
+	public void addRequest(String the_request){
+		requests_queue.add(the_request);
+		
 	}
 
-	synchronized public void deleteRequest(String the_request_id){
-		requests.remove(the_request_id);
+	public String pop(){
+		return requests_queue.remove();
 	}
 
 
@@ -94,14 +105,19 @@ public class KVStore implements KVService, IPaxos {
 	 * {@inheritDoc}
 	 */
 	@Override
-	synchronized public void put(String the_key, String the_value) 
+	synchronized public void put(String key, String value) 
 			throws RemoteException{
+<<<<<<< .mine
+		String the_request = "put" + " " + key + " " + value;
+		addRequest(the_request);
+=======
 		String val = "put "+the_key+" "+the_value+" f";
 		
 
 		my_KVStore.put(the_key, the_value);
 
 
+>>>>>>> .r84
 	}
 
 	/**
@@ -244,13 +260,13 @@ public class KVStore implements KVService, IPaxos {
 	 * have a number greater than n.
 	 */
 	@Override
-	public int accept(float n, String function)
+	public int accept(float n, String value)
 			throws RemoteException {
 		int round=(int)n;
 		if(round>=minProposal){
 			acceptedProposal=round;
 			minProposal=round;
-			acceptedValue=function;
+			acceptedValue=value;
 		}
 		return minProposal;
 	}
