@@ -30,18 +30,12 @@ public class RMIServer {
 
 			String name2 = "KVSync";
 			IPaxos stub2 = (IPaxos)UnicastRemoteObject.toStub(kvs);
-//			Registry reg2 = LocateRegistry.createRegistry(1088);
 			reg.bind(name2, stub2);
 
 			List<IPaxos> my_replicated_servers = new ArrayList<IPaxos>();
 
 			int i = 0;
 			ArrayList<String> missingServers = new ArrayList<String>(Arrays.asList(args));
-//			System.out.println(args[0]);
-//			System.out.println(missingServers.size());
-//			for(String s:missingServers){
-//				System.out.println(s);
-//			}
 			IPaxos paxos;
 			while(!missingServers.isEmpty()){
 				System.out.println("Trying server: " +missingServers.get(0));
