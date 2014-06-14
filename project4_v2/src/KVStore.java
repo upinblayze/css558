@@ -49,6 +49,11 @@ public class KVStore implements KVService, IPaxos {
 	private BlockingQueue<String> requests_queue;
 	
 	private int server_id;
+	
+
+	private int minProposal;
+	private int acceptedProposal;
+	private String acceptedValue;
 
 	/**
 	 * A simple constructor
@@ -107,17 +112,8 @@ public class KVStore implements KVService, IPaxos {
 	@Override
 	synchronized public void put(String key, String value) 
 			throws RemoteException{
-<<<<<<< .mine
 		String the_request = "put" + " " + key + " " + value;
 		addRequest(the_request);
-=======
-		String val = "put "+the_key+" "+the_value+" f";
-		
-
-		my_KVStore.put(the_key, the_value);
-
-
->>>>>>> .r84
 	}
 
 	/**
@@ -125,101 +121,11 @@ public class KVStore implements KVService, IPaxos {
 	 */
 	@Override
 	synchronized public void delete(String the_key) throws RemoteException{
-		String val = "put "+the_key+" f";
-		String temp = val;
-		int quorum_count = 0;
-		String prep_reply;
-		String[] vals;
-
-		if(my_log.get(my_firstUnchosenIndex) != null ) {
-			temp = val;
-			val = my_log.get(my_firstUnchosenIndex);
-		}
-
-		while(true) {
-			//assume leader
-			while (quorum_count < QUORUM_COUNT - 1) {
-				quorum_count = 0;
-				//prepare phase
-				for(IPaxos p: my_replicated_servers) {
-					//prepare
-					prep_reply = p.prepare(my_firstUnchosenIndex); //timeout??
-					vals = prep_reply.split("\\s+");
-					if(vals[0].equals('t') || vals[0].equals('f') ) {
-						quorum_count++;
-					}
-				}
-			}
-
-			//accept phase
-			while (quorum_count < QUORUM_COUNT - 1) {
-				quorum_count = 0;
-				int acceptorsFirstUnchosenIndex;
-				for(IPaxos p: my_replicated_servers) {
-					acceptorsFirstUnchosenIndex = 
-							Integer.parseInt(p.accept(my_firstUnchosenIndex, val)); //timeouts??
-					quorum_count++;
-					while(acceptorsFirstUnchosenIndex < my_firstUnchosenIndex) {
-						acceptorsFirstUnchosenIndex = 
-								Integer.parseInt(
-										p.success(acceptorsFirstUnchosenIndex, 
-												my_log.get(acceptorsFirstUnchosenIndex)));
-					}
-				}
-			}
-
-			if(quorum_count >= QUORUM_COUNT) {
-				vals = val.split("\\s+");
-				vals[vals.length-1] = "t";
-				for(int i = 0; i < vals.length; i++) {
-					val = vals[i] + " ";
-				}
-			}
-			if(val.equals(temp)) {
-				break;
-			} else {
-				val = temp;
-			}
-		}
-
-		my_KVStore.remove(the_key);
-
-		for(int i = my_firstUnchosenIndex; i < my_log.size(); i++) {
-			temp = my_log.get(i);
-			vals = temp.split("\\s+");
-			if(vals[vals.length-1].equals('t')) {
-				my_firstUnchosenIndex++;
-			} else if (vals[vals.length-1].equals('t')) {
-				my_firstUnchosenIndex = i;
-				break;
-			}
-		}
-
-		//		if(tpc(the_key)){
-		//			if(!KVStore.containsKey(the_key)){
-		//				logger.log("Key = " + the_key + " not found");
-		//			} else {
-		//				KVStore.remove(the_key);
-		//				logger.log("Server call: delete(" + the_key + ")", true);
-		//			}
-		//			if(!KVStore.containsKey(the_key)){
-		//				logger.log("successful deletion of key = " + the_key, true);
-		//				logger.log(KVStore.toString(), true);
-		//			} else{
-		//				logger.log("failed deletion of key = " + the_key, true);
-		//			}
-		//		}
-		//		else{
-		//			logger.log("failed deletion of key = " + the_key + " due to failed TPC", true);
-		//		}
-		//		logger.log(my_KVStore.toString(),true);
+	
 	}
 
-	private int minProposal;
-	private int acceptedProposal;
-	private String acceptedValue;
 
-<<<<<<< .mine
+
 	/*
 	 * If an acceptor receives a prepare request with number n greater
 	 * than that of any prepare request to which it has already responded,
@@ -227,7 +133,7 @@ public class KVStore implements KVService, IPaxos {
 	 * proposals numbered less than n and with the highest-numbered proposal
 	 * (if any) that it has accepted.
 	 */
-=======
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -237,7 +143,6 @@ public class KVStore implements KVService, IPaxos {
 		return null;
 	}
 
->>>>>>> .r82
 	/**
 	 * {@inheritDoc}
 	 */
@@ -260,7 +165,7 @@ public class KVStore implements KVService, IPaxos {
 	 * have a number greater than n.
 	 */
 	@Override
-	public int accept(float n, String value)
+	public String accept(float n, String value)
 			throws RemoteException {
 		int round=(int)n;
 		if(round>=minProposal){
@@ -268,75 +173,81 @@ public class KVStore implements KVService, IPaxos {
 			minProposal=round;
 			acceptedValue=value;
 		}
-		return minProposal;
+		return String.valueOf(minProposal);
 	}
 
 	
 	private void paxos(String val) {
-		int quorum_count = 0;
-		String prep_reply;
-		String[] vals;
-		Stack<String> accepted_proposals = new Stack<String>();
+//		int quorum_count = 0;
+//		String prep_reply;
+//		String[] vals;
+//		Stack<String> accepted_proposals = new Stack<String>();
+//
+//		if(my_log.get(my_firstUnchosenIndex) != null) {
+//			accepted_proposals.add(val);
+//			val = my_log.get(my_firstUnchosenIndex);
+//		}
+//
+//		while(!accepted_proposals.isEmpty()) {
+//			//assume leader
+//			while (quorum_count < QUORUM_COUNT - 1) {
+//				quorum_count = 0;
+//				//prepare phase
+//				for(IPaxos p: my_replicated_servers) {
+//					//prepare
+//					prep_reply = p.prepare(my_firstUnchosenIndex); //timeout??
+//					if(!prep_reply.equals("ACK")) {
+//						accepted_proposals.add(val);
+//						val = prep_reply;
+//					}
+//					quorum_count++;
+//				}
+//			}
+//
+//			//accept phase
+//			quorum_count = 0;
+//			while (quorum_count < QUORUM_COUNT - 1) {
+//				quorum_count = 0;
+//				int acceptorsFirstUnchosenIndex;
+//				for(IPaxos p: my_replicated_servers) {
+//					acceptorsFirstUnchosenIndex = 
+//							Integer.parseInt(
+//									p.accept(my_firstUnchosenIndex, val)); //timeouts??
+//					quorum_count++;
+//					while(acceptorsFirstUnchosenIndex < my_firstUnchosenIndex) {
+//						acceptorsFirstUnchosenIndex = 
+//								Integer.parseInt(
+//										p.success(acceptorsFirstUnchosenIndex, 
+//												my_log.get(acceptorsFirstUnchosenIndex)));
+//					}
+//				}
+//			}
+//
+//			//the value has been chosen so mark true
+//			vals = val.split("\\s+");
+//			vals[vals.length-1] = "t";
+//			for(int i = 0; i < vals.length; i++) {
+//				val = vals[i] + " ";
+//			}
+//		}
+//		
+//		//now find first unchosen
+//		String temp;
+//		for(int i = my_firstUnchosenIndex + 1; i < my_log.size(); i++) {
+//			temp = my_log.get(i);
+//			vals = temp.split("\\s+");
+//			if(vals[vals.length-1].equals('t')) {
+//				my_firstUnchosenIndex++;
+//			} else if (vals[vals.length-1].equals('t')) {
+//				my_firstUnchosenIndex = i;
+//				break;
+//			}
+//		}
+	}
 
-		if(my_log.get(my_firstUnchosenIndex) != null) {
-			accepted_proposals.add(val);
-			val = my_log.get(my_firstUnchosenIndex);
-		}
-
-		while(!accepted_proposals.isEmpty()) {
-			//assume leader
-			while (quorum_count < QUORUM_COUNT - 1) {
-				quorum_count = 0;
-				//prepare phase
-				for(IPaxos p: my_replicated_servers) {
-					//prepare
-					prep_reply = p.prepare(my_firstUnchosenIndex); //timeout??
-					if(!prep_reply.equals("ACK")) {
-						accepted_proposals.add(val);
-						val = prep_reply;
-					}
-					quorum_count++;
-				}
-			}
-
-			//accept phase
-			quorum_count = 0;
-			while (quorum_count < QUORUM_COUNT - 1) {
-				quorum_count = 0;
-				int acceptorsFirstUnchosenIndex;
-				for(IPaxos p: my_replicated_servers) {
-					acceptorsFirstUnchosenIndex = 
-							Integer.parseInt(
-									p.accept(my_firstUnchosenIndex, val)); //timeouts??
-					quorum_count++;
-					while(acceptorsFirstUnchosenIndex < my_firstUnchosenIndex) {
-						acceptorsFirstUnchosenIndex = 
-								Integer.parseInt(
-										p.success(acceptorsFirstUnchosenIndex, 
-												my_log.get(acceptorsFirstUnchosenIndex)));
-					}
-				}
-			}
-
-			//the value has been chosen so mark true
-			vals = val.split("\\s+");
-			vals[vals.length-1] = "t";
-			for(int i = 0; i < vals.length; i++) {
-				val = vals[i] + " ";
-			}
-		}
-		
-		//now find first unchosen
-		String temp;
-		for(int i = my_firstUnchosenIndex + 1; i < my_log.size(); i++) {
-			temp = my_log.get(i);
-			vals = temp.split("\\s+");
-			if(vals[vals.length-1].equals('t')) {
-				my_firstUnchosenIndex++;
-			} else if (vals[vals.length-1].equals('t')) {
-				my_firstUnchosenIndex = i;
-				break;
-			}
-		}
+	@Override
+	public String success(int index, String value) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
