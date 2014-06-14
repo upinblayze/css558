@@ -23,7 +23,7 @@ public class RMIServer {
 
 		try{
 			String name = "KVService";
-			KVStore kvs = new KVStore();
+			KVStore kvs = new KVStore(Integer.parseInt(args[0]));
 			KVService stub = (KVService)UnicastRemoteObject.exportObject(kvs,0);
 			Registry reg = LocateRegistry.createRegistry(1099);
 			reg.bind(name, stub);
@@ -37,6 +37,7 @@ public class RMIServer {
 			int i = 0;
 			ArrayList<String> missingServers = new ArrayList<String>(Arrays.asList(args));
 			IPaxos paxos;
+			missingServers.remove(0); // because it is not a server address
 			while(!missingServers.isEmpty()){
 				System.out.println("Trying server: " +missingServers.get(0));
 				try{
