@@ -36,7 +36,8 @@ public interface IPaxos extends Remote {
 	 * @return - the index of the first unchosen command or empty slot that is 
 	 * 				less than n, o.w. return ACK
 	 */
-
+	public String accept(float n, String value) throws RemoteException;
+	
 	/**
 	 * When the proposal receives an index from an acceptor for its first
 	 * unknown chosen array from the result of the accept method or success
@@ -48,7 +49,7 @@ public interface IPaxos extends Remote {
 	 */
 	String success(int index, String value);
 
-	public int accept(float n, String value) throws RemoteException;
+	
 
 	
 }
