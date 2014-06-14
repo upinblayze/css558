@@ -8,9 +8,7 @@
 
 import java.io.IOException;
 import java.net.Inet4Address;
-import java.net.UnknownHostException;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -104,16 +102,6 @@ public class KVStore implements KVService, IPaxos {
 		my_KVStore.put(the_key, the_value);
 
 
-		//		
-		//			KVStore.put(the_key, the_value);
-		//			logger.log("Server call: put <" + the_key + "," 
-		//					+ the_value + ">" , true);
-		//
-		//		
-		//			logger.log("Server call: failed to do TPC -> put <" + the_key + "," 
-		//					+ the_value + ">" , true);
-		//		
-		//		logger.log(KVStore.toString(),true);
 	}
 
 	/**
@@ -211,10 +199,19 @@ public class KVStore implements KVService, IPaxos {
 		//		logger.log(my_KVStore.toString(),true);
 	}
 
-	private String generateId() throws UnknownHostException{
-		return Inet4Address.getLocalHost() + "-" + Logger.getTimestamp();
-	}
+	private int minProposal;
+	private int acceptedProposal;
+	private String acceptedValue;
 
+<<<<<<< .mine
+	/*
+	 * If an acceptor receives a prepare request with number n greater
+	 * than that of any prepare request to which it has already responded,
+	 * the it responds to the request with a promise not to accept any more
+	 * proposals numbered less than n and with the highest-numbered proposal
+	 * (if any) that it has accepted.
+	 */
+=======
 	/**
 	 * {@inheritDoc}
 	 */
@@ -224,44 +221,38 @@ public class KVStore implements KVService, IPaxos {
 		return null;
 	}
 
+>>>>>>> .r82
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public String prepare(int n) {
-		// TODO Auto-generated method stub
-		String proposal=null+" F";
-		if(n<my_log.size()){
-			proposal=my_log.get(n);
-		}else{
-			//			catch the array up to proposal size
-			while(my_log.size()<=n){
-				my_log.add(proposal);
-			}
+	public String[] prepare(float n) throws RemoteException {
+		int round=(int) n;
+		if(round>minProposal){
+//			accept proposal if higher
+			minProposal=round;
 		}
-		return proposal;
+//		assumption: if the returned proposal from the proposer is EQUAL the
+//		proposed value, it is essentially a commitment
+		String[] accepted={acceptedProposal+"",acceptedValue};
+		return accepted;
 	}
 
+	/*
+	 * If an acceptor receives an accept request for a proposal numbered n, it
+	 * accepts the proposal unless it has already responded to a prepare request
+	 * have a number greater than n.
+	 */
 	@Override
-	public String accept(int n, String value) {
-		// TODO Auto-generated method stub
-		boolean foundFirstIndex=false;
-		int index=0;
-		while(!foundFirstIndex && index<my_log.size()){
-			String[] localVal=my_log.get(index).split(" ");
-			if(localVal[localVal.length-1].equalsIgnoreCase("F")){
-				foundFirstIndex=true;
-			}
+	public int accept(float n, String function)
+			throws RemoteException {
+		int round=(int)n;
+		if(round>=minProposal){
+			acceptedProposal=round;
+			minProposal=round;
+			acceptedValue=function;
 		}
-		return index+"";
-	}
-
-	@Override
-	public String success(int index, String value) {
-		// TODO Auto-generated method stub
-
-		my_log.set(index, value);
-		return null;
+		return minProposal;
 	}
 
 	
