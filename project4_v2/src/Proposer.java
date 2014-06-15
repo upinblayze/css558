@@ -108,7 +108,7 @@ public class Proposer implements Runnable {
 					my_log.put(proposal_number, request);
 					
 					//learning phase
-					for(IPaxos p : my_replicated_server){
+					for(final IPaxos p : my_replicated_server){
 						try {
 							System.out.println("Teaching " + p.getServer_id() + 
 									proposal_number + "," + request);

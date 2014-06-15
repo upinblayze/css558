@@ -81,7 +81,7 @@ public class KVStore implements KVService, IPaxos, IKVProcessor {
 	}
 
 	public void setMy_replicated_servers(
-			List<IPaxos> my_replicated_servers) {
+			final List<IPaxos> my_replicated_servers) {
 		my_replicated_servers.add(this);
 		this.my_replicated_servers = my_replicated_servers;
 	}
