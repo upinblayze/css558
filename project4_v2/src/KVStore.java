@@ -128,22 +128,22 @@ public class KVStore implements KVService, IPaxos {
 
 
 
-	/*
-	 * If an acceptor receives a prepare request with number n greater
-	 * than that of any prepare request to which it has already responded,
-	 * the it responds to the request with a promise not to accept any more
-	 * proposals numbered less than n and with the highest-numbered proposal
-	 * (if any) that it has accepted.
-	 */
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public String checkForLeader(int server_id) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+//	/*
+//	 * If an acceptor receives a prepare request with number n greater
+//	 * than that of any prepare request to which it has already responded,
+//	 * the it responds to the request with a promise not to accept any more
+//	 * proposals numbered less than n and with the highest-numbered proposal
+//	 * (if any) that it has accepted.
+//	 */
+//
+//	/**
+//	 * {@inheritDoc}
+//	 */
+//	@Override
+//	public String checkForLeader(int server_id) {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
 
 	/**
 	 * {@inheritDoc}
@@ -170,11 +170,7 @@ public class KVStore implements KVService, IPaxos {
 		return s;
 	}
 
-	@Override
-	public String success(int index, String value) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+
 
 	@Override
 	public void learn(String accepted_proposal_and_value){
@@ -189,7 +185,7 @@ public class KVStore implements KVService, IPaxos {
 	}
 
 	@Override
-	public int getServer_id() {
+	public int getServer_id(){
 		return server_id;
 	}
 

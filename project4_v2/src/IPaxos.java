@@ -5,14 +5,14 @@ import java.rmi.RemoteException;
 public interface IPaxos extends Remote {
 	
 
-	/**
-	 * An other server will call this method on a remote object, passing in its
-	 * own server id.   If the server id is higher that the local host's, then
-	 * return ACK, NACK otherwise.
-	 * @param server_id
-	 * @return
-	 */
-	String checkForLeader(int server_id);
+//	/**
+//	 * An other server will call this method on a remote object, passing in its
+//	 * own server id.   If the server id is higher that the local host's, then
+//	 * return ACK, NACK otherwise.
+//	 * @param server_id
+//	 * @return
+//	 */
+//	String checkForLeader(int server_id);
 	
 	/**
 	 *This method receives the slot number that the proposer is trying
@@ -38,17 +38,17 @@ public interface IPaxos extends Remote {
 	 * 				less than n, o.w. return ACK
 	 */
 	public String accept(float n, String value) throws RemoteException;
-	
-	/**
-	 * When the proposal receives an index from an acceptor for its first
-	 * unknown chosen array from the result of the accept method or success
-	 * method, it calls this method on the remote object, passing in the 
-	 * chosen command and the commands index in the replicated log.
-	 * @param index
-	 * @param value
-	 * @return
-	 */
-	String success(int index, String value);
+//	
+//	/**
+//	 * When the proposal receives an index from an acceptor for its first
+//	 * unknown chosen array from the result of the accept method or success
+//	 * method, it calls this method on the remote object, passing in the 
+//	 * chosen command and the commands index in the replicated log.
+//	 * @param index
+//	 * @param value
+//	 * @return
+//	 */
+//	String success(int index, String value);
 
 	/**
 	 * When the proposal receives an index from an acceptor for its first
@@ -61,7 +61,7 @@ public interface IPaxos extends Remote {
 	 */
 	void learn(String accepted_propsal_and_value)throws RemoteException;
 	
-	public int getServer_id();
+	public int getServer_id() throws RemoteException;
 
 	
 }

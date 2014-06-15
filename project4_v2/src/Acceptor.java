@@ -11,7 +11,7 @@ public class Acceptor{
 	public Acceptor(final Map<Float, String> the_log){
 		my_log = the_log;
 		min_proposal_number = 0;
-		accepted_value = null;
+		accepted_value =new String();
 		accepted_proposal_number = 0;
 	}
 	

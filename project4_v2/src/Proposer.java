@@ -23,7 +23,7 @@ public class Proposer implements Runnable {
 			final BlockingQueue<String> requests_queue,
 			final Map<Float, String> the_log) {
 		this.server_id = server_id;
-		proposal_number = server_id / 10;
+		proposal_number = ((float)server_id) / 10;
 		this.my_replicated_server = my_replicated_server;
 		this.requests_queue = requests_queue;
 		my_log = the_log;
@@ -147,7 +147,9 @@ public class Proposer implements Runnable {
 					replies.add(response);
 				}
 			} catch (Exception e) {
-				System.out.print("Timeout");
+				System.out.println(response);
+				System.out.println(e.getMessage());
+				System.out.println("Timeout");
 			}
 			f.cancel(true);
 		}
