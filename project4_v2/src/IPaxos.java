@@ -25,7 +25,7 @@ public interface IPaxos extends Remote {
 	 */
 
 	
-	public String[] prepare(float n) throws RemoteException;
+	public String prepare(float n) throws RemoteException;
 	
 
 	/**
