@@ -103,6 +103,16 @@ public class Proposer implements Runnable {
 					}
 					request = request + ",[chosen]";
 					my_log.put(proposal_number, request);
+					
+					//learning phase
+					for(IPaxos p : my_replicated_server){
+						try {
+							p.learn(proposal_number + "," + request);
+						} catch (RemoteException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
 				}
 			}
 		}
@@ -116,7 +126,7 @@ public class Proposer implements Runnable {
 			@SuppressWarnings("unchecked")
 			RunnableFuture f = new FutureTask(new Callable<String>(){
 				// implement call
-				public String call() throws RemoteException {
+				public String call() throws RemoteException, InterruptedException {
 					if (phase.equals(Phase.PREPARE)) {
 						return p.prepare(proposal_number);
 					}

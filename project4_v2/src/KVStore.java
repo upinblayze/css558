@@ -14,10 +14,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.PriorityQueue;
+import java.util.Random;
 import java.util.Stack;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+
+import javax.sound.sampled.Port;
 
 /**
  * This is a simple class that implements a key-value store.  Instances of this
@@ -49,11 +52,10 @@ public class KVStore implements KVService, IPaxos {
 	private BlockingQueue<String> requests_queue;
 	
 	private int server_id;
-	
 
-	private int minProposal;
-	private int acceptedProposal;
-	private String acceptedValue;
+	private Acceptor acceptor;
+	
+	private Random my_rand;
 
 	/**
 	 * A simple constructor
@@ -68,6 +70,7 @@ public class KVStore implements KVService, IPaxos {
 		requests = new HashMap<String, String[]>();
 		requests_queue = new LinkedBlockingQueue<String>();
 		my_log = new HashMap<Float, String>();
+		acceptor = new Acceptor(my_log);
 	}
 
 	public List<IPaxos> getMy_replicated_servers() {
@@ -88,11 +91,6 @@ public class KVStore implements KVService, IPaxos {
 		requests_queue.add(the_request);
 		
 	}
-
-	public String pop(){
-		return requests_queue.remove();
-	}
-
 
 	/**
 	 * {@inheritDoc}
@@ -146,18 +144,14 @@ public class KVStore implements KVService, IPaxos {
 
 	/**
 	 * {@inheritDoc}
+	 * @throws InterruptedException 
 	 */
 	@Override
-	public String[] prepare(float n) throws RemoteException {
-		int round=(int) n;
-		if(round>minProposal){
-//			accept proposal if higher
-			minProposal=round;
-		}
-//		assumption: if the returned proposal from the proposer is EQUAL the
-//		proposed value, it is essentially a commitment
-		String[] accepted={acceptedProposal+"",acceptedValue};
-		return accepted;
+	public String prepare(float n) throws RemoteException, InterruptedException {
+		int rand = my_rand.nextInt(3);
+		System.out.println("Sleeping for " + rand + " seconds");
+		Thread.sleep(rand*1000);
+		return acceptor.prepare(n);
 	}
 
 	/*
@@ -168,87 +162,22 @@ public class KVStore implements KVService, IPaxos {
 	@Override
 	public String accept(float n, String value)
 			throws RemoteException {
-		int round=(int)n;
-		if(round>=minProposal){
-			acceptedProposal=round;
-			minProposal=round;
-			acceptedValue=value;
-		}
-		return String.valueOf(minProposal);
-	}
-
-	
-	private void paxos(String val) {
-//		int quorum_count = 0;
-//		String prep_reply;
-//		String[] vals;
-//		Stack<String> accepted_proposals = new Stack<String>();
-//
-//		if(my_log.get(my_firstUnchosenIndex) != null) {
-//			accepted_proposals.add(val);
-//			val = my_log.get(my_firstUnchosenIndex);
-//		}
-//
-//		while(!accepted_proposals.isEmpty()) {
-//			//assume leader
-//			while (quorum_count < QUORUM_COUNT - 1) {
-//				quorum_count = 0;
-//				//prepare phase
-//				for(IPaxos p: my_replicated_servers) {
-//					//prepare
-//					prep_reply = p.prepare(my_firstUnchosenIndex); //timeout??
-//					if(!prep_reply.equals("ACK")) {
-//						accepted_proposals.add(val);
-//						val = prep_reply;
-//					}
-//					quorum_count++;
-//				}
-//			}
-//
-//			//accept phase
-//			quorum_count = 0;
-//			while (quorum_count < QUORUM_COUNT - 1) {
-//				quorum_count = 0;
-//				int acceptorsFirstUnchosenIndex;
-//				for(IPaxos p: my_replicated_servers) {
-//					acceptorsFirstUnchosenIndex = 
-//							Integer.parseInt(
-//									p.accept(my_firstUnchosenIndex, val)); //timeouts??
-//					quorum_count++;
-//					while(acceptorsFirstUnchosenIndex < my_firstUnchosenIndex) {
-//						acceptorsFirstUnchosenIndex = 
-//								Integer.parseInt(
-//										p.success(acceptorsFirstUnchosenIndex, 
-//												my_log.get(acceptorsFirstUnchosenIndex)));
-//					}
-//				}
-//			}
-//
-//			//the value has been chosen so mark true
-//			vals = val.split("\\s+");
-//			vals[vals.length-1] = "t";
-//			for(int i = 0; i < vals.length; i++) {
-//				val = vals[i] + " ";
-//			}
-//		}
-//		
-//		//now find first unchosen
-//		String temp;
-//		for(int i = my_firstUnchosenIndex + 1; i < my_log.size(); i++) {
-//			temp = my_log.get(i);
-//			vals = temp.split("\\s+");
-//			if(vals[vals.length-1].equals('t')) {
-//				my_firstUnchosenIndex++;
-//			} else if (vals[vals.length-1].equals('t')) {
-//				my_firstUnchosenIndex = i;
-//				break;
-//			}
-//		}
+		
+		return acceptor.accept(n, value);
 	}
 
 	@Override
 	public String success(int index, String value) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public void learn(String accepted_proposal_and_value){
+		String[] tokens = accepted_proposal_and_value.split(",");
+		float proposal_number = Float.parseFloat(tokens[0]);
+		String value = tokens[1];
+		//overwrite the [accepted] log for that request
+		my_log.put(proposal_number, value);
 	}
 }

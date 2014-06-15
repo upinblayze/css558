@@ -22,10 +22,11 @@ public interface IPaxos extends Remote {
 	 *message.
 	 * @param n - is the proposals index number
 	 * @return - the accepted value, o.w. return ACK
+	 * @throws InterruptedException 
 	 */
 
 	
-	public String prepare(float n) throws RemoteException;
+	public String prepare(float n) throws RemoteException, InterruptedException;
 	
 
 	/**
@@ -49,7 +50,16 @@ public interface IPaxos extends Remote {
 	 */
 	String success(int index, String value);
 
-	
+	/**
+	 * When the proposal receives an index from an acceptor for its first
+	 * unknown chosen array from the result of the accept method or success
+	 * method, it calls this method on the remote object, passing in the 
+	 * chosen command and the commands index in the replicated log.
+	 * @param index
+	 * @param value
+	 * @return
+	 */
+	void learn(String accepted_propsal_and_value)throws RemoteException;
 
 	
 }
