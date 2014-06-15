@@ -60,6 +60,8 @@ public interface IPaxos extends Remote {
 	 * @return
 	 */
 	void learn(String accepted_propsal_and_value)throws RemoteException;
+	
+	public int getServer_id();
 
 	
 }

@@ -11,6 +11,8 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * A simple class that implements a KVService, allowing for client machines to 
@@ -22,8 +24,11 @@ public class RMIServer {
 	public static void main(String[] args) {
 
 		try{
+			BlockingQueue<String> requests_queue = new LinkedBlockingQueue<String>();
+			Map<Float,String> my_log = new HashMap<Float, String>();
 			String name = "KVService";
-			KVStore kvs = new KVStore(Integer.parseInt(args[0]));
+			KVStore kvs = new KVStore(Integer.parseInt(args[0]), 
+					requests_queue,my_log);
 			KVService stub = (KVService)UnicastRemoteObject.exportObject(kvs,0);
 			Registry reg = LocateRegistry.createRegistry(1099);
 			reg.bind(name, stub);
@@ -54,7 +59,11 @@ public class RMIServer {
 			}
 
 			kvs.setMy_replicated_servers(my_replicated_servers);
-
+			Proposer p = new Proposer(Integer.parseInt(args[0]), 
+					my_replicated_servers, 
+					requests_queue, my_log);
+			Thread t = new Thread(p);
+			t.start();
 			System.out.println("Server ready");
 		}catch(Exception e){
 //			System.out.println("RMIServer error: "+e.getMessage());

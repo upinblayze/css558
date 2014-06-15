@@ -21,7 +21,7 @@ public class Proposer implements Runnable {
 
 	public Proposer(int server_id, final List<IPaxos> my_replicated_server,
 			final BlockingQueue<String> requests_queue,
-			final HashMap<Float, String> the_log) {
+			final Map<Float, String> the_log) {
 		this.server_id = server_id;
 		proposal_number = server_id / 10;
 		this.my_replicated_server = my_replicated_server;
@@ -107,6 +107,8 @@ public class Proposer implements Runnable {
 					//learning phase
 					for(IPaxos p : my_replicated_server){
 						try {
+							System.out.println("Teaching " + p.getServer_id() + 
+									proposal_number + "," + request);
 							p.learn(proposal_number + "," + request);
 						} catch (RemoteException e) {
 							// TODO Auto-generated catch block

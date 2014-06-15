@@ -48,28 +48,31 @@ public class KVStore implements KVService, IPaxos {
 	private Map<Float,String> my_log;
 
 	private int my_firstUnchosenIndex;
-	
+
 	private BlockingQueue<String> requests_queue;
-	
+
 	private int server_id;
 
 	private Acceptor acceptor;
-	
+
 	private Random my_rand;
+
 
 	/**
 	 * A simple constructor
 	 * @throws IOExceptions
 	 */
-	public KVStore(int server_id) throws IOException{
+	public KVStore(int server_id,
+			final BlockingQueue<String> requests_queue,
+			final Map<Float, String> the_log) throws IOException{
 		this.server_id = server_id;
 		my_KVStore=new HashMap<String,String>();
 		logger = new Logger("server.log");
 		logger.log("RPC.Server start running on : " 
 				+ Inet4Address.getLocalHost() , true);
 		requests = new HashMap<String, String[]>();
-		requests_queue = new LinkedBlockingQueue<String>();
-		my_log = new HashMap<Float, String>();
+		this.requests_queue = requests_queue;
+		my_log = the_log;
 		acceptor = new Acceptor(my_log);
 	}
 
@@ -89,7 +92,7 @@ public class KVStore implements KVService, IPaxos {
 
 	public void addRequest(String the_request){
 		requests_queue.add(the_request);
-		
+
 	}
 
 	/**
@@ -120,7 +123,7 @@ public class KVStore implements KVService, IPaxos {
 	 */
 	@Override
 	synchronized public void delete(String the_key) throws RemoteException{
-	
+
 	}
 
 
@@ -151,7 +154,7 @@ public class KVStore implements KVService, IPaxos {
 		int rand = my_rand.nextInt(3);
 		System.out.println("Sleeping for " + rand + " seconds");
 		Thread.sleep(rand*1000);
-		return acceptor.prepare(n);
+		return acceptor.prepare(n); 
 	}
 
 	/*
@@ -162,8 +165,9 @@ public class KVStore implements KVService, IPaxos {
 	@Override
 	public String accept(float n, String value)
 			throws RemoteException {
-		
-		return acceptor.accept(n, value);
+		String s=acceptor.accept(n, value);
+		System.out.println(s+" = my_log: "+n+" "+my_log.get(n));
+		return s;
 	}
 
 	@Override
@@ -178,6 +182,15 @@ public class KVStore implements KVService, IPaxos {
 		float proposal_number = Float.parseFloat(tokens[0]);
 		String value = tokens[1];
 		//overwrite the [accepted] log for that request
+		System.out.println("Before learning: "+my_log.get(proposal_number));
 		my_log.put(proposal_number, value);
+		System.out.println("After learning: "+my_log.get(proposal_number));
+
 	}
+
+	@Override
+	public int getServer_id() {
+		return server_id;
+	}
+
 }

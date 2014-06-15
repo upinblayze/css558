@@ -3,13 +3,13 @@ import java.util.Map;
 
 
 public class Acceptor{
-	private Map<Float, String> the_log;
+	private Map<Float, String> my_log;
 	private float min_proposal_number;
 	private String accepted_value;
 	private float accepted_proposal_number;
 	
-	public Acceptor(Map<Float, String> the_log){
-		this.the_log = the_log;
+	public Acceptor(final Map<Float, String> the_log){
+		my_log = the_log;
 		min_proposal_number = 0;
 		accepted_value = null;
 		accepted_proposal_number = 0;
@@ -45,7 +45,9 @@ public class Acceptor{
 			min_proposal_number = n;
 			accepted_proposal_number = n;
 			accepted_value = value;
+			my_log.put(n, value+",[accepted]");
 		}
+
 		return min_proposal_number + "";
 	}
 }
