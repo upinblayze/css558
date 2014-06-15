@@ -26,7 +26,7 @@ import javax.sound.sampled.Port;
  * This is a simple class that implements a key-value store.  Instances of this
  * class reside on the server.
  */
-public class KVStore implements KVService, IPaxos {
+public class KVStore implements KVService, IPaxos, IKVProcessor {
 	private static int QUORUM_COUNT = 3;
 
 	private static int SERVER_COUNT = 5;
@@ -187,6 +187,21 @@ public class KVStore implements KVService, IPaxos {
 	@Override
 	public int getServer_id(){
 		return server_id;
+	}
+
+	@Override
+	public void kv_put(String key, String val) {
+		my_KVStore.put(key, val);
+	}
+
+	@Override
+	public void kv_delete(String key) {
+		my_KVStore.remove(key);
+	}
+
+	@Override
+	public int kv_size() {
+		return my_KVStore.size();
 	}
 
 }

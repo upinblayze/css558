@@ -62,8 +62,11 @@ public class RMIServer {
 			Proposer p = new Proposer(Integer.parseInt(args[0]), 
 					my_replicated_servers, 
 					requests_queue, my_log);
+			LogProcessor lp = new LogProcessor(my_log, kvs);
 			Thread t = new Thread(p);
 			t.start();
+//			Thread t2 = new Thread(lp);
+//			t2.start();
 			System.out.println("Server ready");
 		}catch(Exception e){
 //			System.out.println("RMIServer error: "+e.getMessage());
