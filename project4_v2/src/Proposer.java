@@ -51,7 +51,9 @@ public class Proposer implements Runnable {
 					proposal_number++;
 					quorum_count = 0;
 					request = null;
+					replies.clear();
 					try {
+						System.out.println("Preparing Task " + proposal_number);
 						scheduleTask(Phase.PREPARE, null);
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -86,6 +88,7 @@ public class Proposer implements Runnable {
 
 				// accept phase
 				try {
+					System.out.println("Accepting: " + request);
 					scheduleTask(Phase.ACCEPT, request);
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
@@ -142,7 +145,7 @@ public class Proposer implements Runnable {
 			t.start();
 			// get the result
 			try {
-				response = (String)f.get(1, TimeUnit.SECONDS);
+				response = (String)f.get(3, TimeUnit.SECONDS);
 				if(response != null){
 					replies.add(response);
 				}

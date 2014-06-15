@@ -151,9 +151,10 @@ public class KVStore implements KVService, IPaxos, IKVProcessor {
 	 */
 	@Override
 	public String prepare(float n) throws RemoteException, InterruptedException {
-		int rand = my_rand.nextInt(3);
-		System.out.println("Sleeping for " + rand + " seconds");
-		Thread.sleep(rand*1000);
+		int rand = my_rand.nextInt(100);
+		if(rand<15){
+			Thread.sleep((rand+1)*1000);
+		}
 		return acceptor.prepare(n); 
 	}
 

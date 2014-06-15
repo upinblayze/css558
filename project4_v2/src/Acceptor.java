@@ -24,6 +24,7 @@ public class Acceptor{
 	 */
 
 	public String prepare(float n){
+		System.out.println("Preparing "+n);
 		String v;
 		if(n > min_proposal_number){
 			min_proposal_number = n;
