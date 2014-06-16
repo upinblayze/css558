@@ -1,10 +1,9 @@
 import java.rmi.RemoteException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.RunnableFuture;
@@ -16,12 +15,12 @@ public class Proposer implements Runnable {
 	private BlockingQueue<String> requests_queue;
 	private int server_id;
 	private float proposal_number = 0;
-	private Map<Float, String> my_log;
+	private ConcurrentMap<Float, String> my_log;
 	List<String> replies;
 
 	public Proposer(int server_id, final List<IPaxos> my_replicated_server,
-			final BlockingQueue<String> requests_queue,
-			final Map<Float, String> the_log) {
+			BlockingQueue<String> requests_queue,
+			ConcurrentMap<Float, String> the_log) {
 		this.server_id = server_id;
 		proposal_number = ((float)server_id) / 10;
 		this.my_replicated_server = my_replicated_server;
@@ -58,14 +57,19 @@ public class Proposer implements Runnable {
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
+					System.out.println(replies.toString());
 					for(String s : replies){
-						prepare_response = s.trim().split(",");	
+						prepare_response = s.trim().split(",");
 						if(prepare_response.length > 1){
+							System.out.print(prepare_response);
 							if(max_accepted_proposal_number < Float
 									.parseFloat(prepare_response[0])){
+								System.out.println(max_accepted_proposal_number);
 								max_accepted_proposal_number = Float
 										.parseFloat(prepare_response[0]);
-								request = prepare_response[1];
+								if(!prepare_response[1].equals("NO_ACCEPTED_VALUE_YET")){
+									request = prepare_response[1];
+								}
 							}
 							quorum_count++;
 						}
@@ -75,7 +79,9 @@ public class Proposer implements Runnable {
 									Float.parseFloat(prepare_response[0]));
 						}
 					}
+					System.out.println("quorum_count: " + quorum_count);
 					if (request == null) {
+						System.out.println("peeking at queue");
 						request = requests_queue.peek();
 						is_peeked = true;
 					}
@@ -102,11 +108,12 @@ public class Proposer implements Runnable {
 				}
 				if(quorum_count >= QUORUM_SIZE){
 					if(is_peeked){
-						requests_queue.remove();
+						String removed=requests_queue.remove();
+						System.out.println("removed from queue: "+removed+ " "+request);
 					}
 					request = request + ",[chosen]";
 					my_log.put(proposal_number, request);
-					
+
 					//learning phase
 					for(final IPaxos p : my_replicated_server){
 						try {
@@ -133,7 +140,9 @@ public class Proposer implements Runnable {
 				// implement call
 				public String call() throws RemoteException, InterruptedException {
 					if (phase.equals(Phase.PREPARE)) {
-						return p.prepare(proposal_number);
+						String prepReturn = p.prepare(proposal_number);
+						System.out.println("We got "+ prepReturn+ "from acceptors");
+						return prepReturn;
 					}
 					else{
 						return p.accept(proposal_number, value);
@@ -150,9 +159,9 @@ public class Proposer implements Runnable {
 					replies.add(response);
 				}
 			} catch (Exception e) {
-				System.out.println(response);
-				System.out.println(e.getMessage());
-				System.out.println("Timeout");
+//				e.printStackTrace();
+//				e.getCause();
+//				System.out.println("Timeout");
 			}
 			f.cancel(true);
 		}

@@ -10,8 +10,12 @@ import java.rmi.Naming;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -25,7 +29,7 @@ public class RMIServer {
 
 		try{
 			BlockingQueue<String> requests_queue = new LinkedBlockingQueue<String>();
-			Map<Float,String> my_log = new HashMap<Float, String>();
+			ConcurrentMap<Float,String> my_log = new ConcurrentSkipListMap<Float, String>();
 			String name = "KVService";
 			KVStore kvs = new KVStore(Integer.parseInt(args[0]), 
 					requests_queue,my_log);
@@ -65,8 +69,8 @@ public class RMIServer {
 			LogProcessor lp = new LogProcessor(my_log, kvs);
 			Thread t = new Thread(p);
 			t.start();
-//			Thread t2 = new Thread(lp);
-//			t2.start();
+			Thread t2 = new Thread(lp);
+		    t2.start();
 			System.out.println("Server ready");
 		}catch(Exception e){
 //			System.out.println("RMIServer error: "+e.getMessage());

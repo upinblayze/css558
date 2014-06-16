@@ -12,15 +12,9 @@ import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.PriorityQueue;
 import java.util.Random;
-import java.util.Stack;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-
-import javax.sound.sampled.Port;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * This is a simple class that implements a key-value store.  Instances of this
@@ -36,16 +30,16 @@ public class KVStore implements KVService, IPaxos, IKVProcessor {
 	/** The logger used to create and append to the server's log file. */
 	private Logger logger;
 
-	/**The hash map used to store and retrieve the key-value parings.*/
+	/**The hash map used to store and retrieve the key-value pairings.*/
 	private HashMap<String,String> my_KVStore;
 
-	/**The hash map used to store and retrieve the key-value parings.*/
+	/**The hash map used to store and retrieve the key-value pairings.*/
 	private List<IPaxos> my_replicated_servers;
 
-	/**The hash map used to store and retrieve the key-value parings.*/
+	/**The hash map used to store and retrieve the key-value pairings.*/
 	private Map<String, String[]> requests;
 
-	private Map<Float,String> my_log;
+	private ConcurrentMap<Float,String> my_log;
 
 	private int my_firstUnchosenIndex;
 
@@ -63,8 +57,8 @@ public class KVStore implements KVService, IPaxos, IKVProcessor {
 	 * @throws IOExceptions
 	 */
 	public KVStore(int server_id,
-			final BlockingQueue<String> requests_queue,
-			final Map<Float, String> the_log) throws IOException{
+			BlockingQueue<String> requests_queue,
+			ConcurrentMap<Float, String> the_log) throws IOException{
 		this.server_id = server_id;
 		my_KVStore=new HashMap<String,String>();
 		logger = new Logger("server.log");
@@ -123,27 +117,28 @@ public class KVStore implements KVService, IPaxos, IKVProcessor {
 	 */
 	@Override
 	synchronized public void delete(String the_key) throws RemoteException{
-
+		String the_request = "delete" + " " + the_key ;
+		addRequest(the_request);
 	}
 
 
 
-//	/*
-//	 * If an acceptor receives a prepare request with number n greater
-//	 * than that of any prepare request to which it has already responded,
-//	 * the it responds to the request with a promise not to accept any more
-//	 * proposals numbered less than n and with the highest-numbered proposal
-//	 * (if any) that it has accepted.
-//	 */
-//
-//	/**
-//	 * {@inheritDoc}
-//	 */
-//	@Override
-//	public String checkForLeader(int server_id) {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
+	//	/*
+	//	 * If an acceptor receives a prepare request with number n greater
+	//	 * than that of any prepare request to which it has already responded,
+	//	 * the it responds to the request with a promise not to accept any more
+	//	 * proposals numbered less than n and with the highest-numbered proposal
+	//	 * (if any) that it has accepted.
+	//	 */
+	//
+	//	/**
+	//	 * {@inheritDoc}
+	//	 */
+	//	@Override
+	//	public String checkForLeader(int server_id) {
+	//		// TODO Auto-generated method stub
+	//		return null;
+	//	}
 
 	/**
 	 * {@inheritDoc}
@@ -151,9 +146,16 @@ public class KVStore implements KVService, IPaxos, IKVProcessor {
 	 */
 	@Override
 	public String prepare(float n) throws RemoteException, InterruptedException {
-		int rand = my_rand.nextInt(100);
-		if(rand<15){
-			Thread.sleep((rand+1)*1000);
+		int id = (int)(n * 10);
+		id = id % 10;
+		System.out.println("id = " + id);
+		System.out.println("server_id = " + server_id);
+		if(server_id != id){
+			int rand = my_rand.nextInt(100);
+			System.out.print("sleep for " + rand + " seconds");
+			if(rand < 10){
+				Thread.sleep((5)*1000);
+			}
 		}
 		return acceptor.prepare(n); 
 	}
@@ -167,22 +169,23 @@ public class KVStore implements KVService, IPaxos, IKVProcessor {
 	public String accept(float n, String value)
 			throws RemoteException {
 		String s=acceptor.accept(n, value);
-		System.out.println(s+" = my_log: "+n+" "+my_log.get(n));
+		System.out.println(s + " = my_log: " + n + " " + my_log.get(n));
 		return s;
 	}
 
 
 
 	@Override
-	public void learn(String accepted_proposal_and_value){
+	public void learn(String accepted_proposal_and_value)
+			throws RemoteException{
 		String[] tokens = accepted_proposal_and_value.split(",");
 		float proposal_number = Float.parseFloat(tokens[0]);
-		String value = tokens[1];
+		String value = tokens[1]+","+tokens[2];
 		//overwrite the [accepted] log for that request
-		System.out.println("Before learning: "+my_log.get(proposal_number));
+		//		System.out.println("Before learning: "+my_log.get(proposal_number));
 		my_log.put(proposal_number, value);
-		System.out.println("After learning: "+my_log.get(proposal_number));
-
+		//		System.out.println("After learning: "+my_log.get(proposal_number));
+		reset_acceptor();
 	}
 
 	@Override
@@ -193,11 +196,13 @@ public class KVStore implements KVService, IPaxos, IKVProcessor {
 	@Override
 	public void kv_put(String key, String val) {
 		my_KVStore.put(key, val);
+		System.out.println(my_KVStore.toString());
 	}
 
 	@Override
 	public void kv_delete(String key) {
 		my_KVStore.remove(key);
+		System.out.println(my_KVStore.toString());
 	}
 
 	@Override
@@ -205,4 +210,10 @@ public class KVStore implements KVService, IPaxos, IKVProcessor {
 		return my_KVStore.size();
 	}
 
+	// this will be called after a value has been chosen 
+	// so that value and its proposal need to be removed from the acceptor
+	public void reset_acceptor(){
+		acceptor.setAccepted_proposal_number(0);
+		acceptor.setAccepted_value("NO_ACCEPTED_VALUE_YET");
+	}
 }
